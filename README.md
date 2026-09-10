@@ -56,3 +56,13 @@ open outdoor-mode-interactive.html
 python3 -m http.server 8080
 # 然后访问 http://localhost:8080/outdoor-mode-interactive.html
 ```
+
+## 修改后同步上线
+
+改完 `outdoor-mode-interactive.html` 后，一条命令完成提交 + 推送 + 上线校验：
+
+```bash
+bash deploy.sh "本次修改说明"
+```
+
+脚本会自动推送、轮询 Pages 上线状态，并比对线上与本地文件哈希是否一致。
