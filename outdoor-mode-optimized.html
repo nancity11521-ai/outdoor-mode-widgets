@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="hVLn3bCcClZC6SZZKgNr6g">
+<head data-page-node-id="amDTLAisFNHVvquXAGcshu">
+<meta charset="UTF-8" data-page-node-id="0QFtosUDRI9CjCaP3nNdNk">
+<title>户外模式 · 优化稿</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif; }
+  body { background:#2b2b2e; display:flex; flex-wrap:wrap; gap:60px; justify-content:center; padding:60px 32px; }
+  .phone { width:440px; height:1002px; background:#000; border-radius:36px; border:3px solid #3a3a3d; overflow:hidden; position:relative; flex-shrink:0; }
+  .punch { position:absolute; top:14px; left:50%; transform:translateX(-50%); width:14px; height:14px; border-radius:50%; background:#1a1a1c; border:2px solid #2c2c2f; z-index:5; }
+  .glow { position:absolute; right:-60px; bottom:180px; width:300px; height:300px; background:radial-gradient(circle,rgba(255,122,26,.10),transparent 65%); pointer-events:none; }
+  .statusbar { display:flex; justify-content:space-between; align-items:center; padding:18px 24px 0; color:#fff; font-size:14px; font-weight:600; }
+  .sb-icons { display:flex; gap:6px; align-items:center; color:#fff; }
+  .sb-icons svg { display:block; }
+  .battery { border:1.5px solid #fff; border-radius:3.5px; width:24px; height:12px; position:relative; padding:1.5px; }
+  .battery::after { content:""; position:absolute; right:-4px; top:3px; width:2px; height:5px; background:#fff; border-radius:0 1px 1px 0; }
+  .battery i { display:block; height:100%; width:79%; background:#ff7a1a; border-radius:1.5px; }
+  .clockrow { display:flex; justify-content:space-between; align-items:center; padding:30px 26px 0; }
+  .clock h1 { color:#fff; font-size:52px; font-weight:300; letter-spacing:1px; line-height:1; }
+  .clock p { color:#9a9a9e; font-size:15px; margin-top:8px; }
+  .modechip { display:flex; align-items:center; gap:6px; border:1px solid rgba(255,122,26,.4); background:rgba(255,122,26,.12); border-radius:20px; padding:6px 13px; }
+  .modechip i { width:7px; height:7px; border-radius:50%; background:#ff7a1a; display:block; }
+  .modechip span { color:#ffb27a; font-size:12px; }
+  .modrow { display:flex; justify-content:space-between; align-items:center; padding:16px 22px 0; }
+  .mright { color:#9a9a9e; font-size:12.5px; }
+  .mright b { color:#ff7a1a; font-weight:600; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:210px; gap:36px; padding:28px 22px 0; }
+  .card { background:#161618; border-radius:44px; corner-shape:squircle; padding:18px; border:1px solid #232326; }
+
+  .weather { grid-column:1 / -1; background:#161618; border-radius:44px; corner-shape:squircle; border:1px solid #232326; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; }
+  .wleft { display:flex; align-items:center; gap:14px; }
+  .wtime { min-width:112px; }
+  .wtime .t { color:#fff; font-size:46px; font-weight:300; line-height:1; letter-spacing:1px; }
+  .wtime .d { color:#9a9a9e; font-size:13px; margin-top:9px; white-space:nowrap; }
+  .wdiv { width:1px; background:#26262a; margin:0 18px; align-self:stretch; }
+  .wtop { display:flex; align-items:center; gap:10px; width:100%; }
+  .wtop .cond { margin:0 0 0 auto; }
+  .wtime { min-width:112px; }
+  .wtime .t { color:#fff; font-size:46px; font-weight:300; line-height:1; letter-spacing:1px; }
+  .wtime .d { color:#9a9a9e; font-size:13px; margin-top:9px; white-space:nowrap; }
+  .wdiv { width:1px; background:#26262a; margin:0 18px; align-self:stretch; }
+  .wtop { display:flex; align-items:center; gap:10px; width:100%; }
+  .wtop .cond { margin:0 0 0 auto; }
+  .wtemp { color:#fff; font-size:40px; font-weight:300; line-height:1; }
+  .cond { color:#c9c9cd; font-size:13px; margin-top:9px; white-space:nowrap; }
+  .wright { flex:1; display:flex; flex-direction:column; align-items:flex-end; gap:12px; }
+  .tags { display:flex; gap:5px; }
+  .tag { font-size:10px; padding:2px 6px; white-space:nowrap; border-radius:20px; background:#1d1d20; color:#ffb27a; border:1px solid rgba(255,122,26,.35); }
+  .tag.uv { background:rgba(255,122,26,.16); color:#ff9a4d; font-weight:600; }
+  .sunrow { display:flex; gap:12px; }
+  .sun { display:flex; align-items:center; gap:5px; font-size:11.5px; color:#8f8f93; }
+  .sun b { color:#e8e8ea; font-weight:500; letter-spacing:.3px; }
+  .daylight { width:100%; }
+  .daylight .dnow { font-size:11px; color:#ff9a4d; font-weight:600; text-align:right; margin-bottom:5px; }
+  .dbar { height:5px; border-radius:3px; background:#232326; position:relative; overflow:visible; }
+  .dbar i { position:absolute; left:0; top:0; height:100%; width:88%; background:linear-gradient(90deg,#4a4a4e,#ffb733 60%,#ff7a1a); border-radius:3px; }
+  .dbar em { position:absolute; top:-3px; left:88%; width:11px; height:11px; border-radius:50%; background:#fff; border:2px solid #ff7a1a; }
+
+  .walk { display:flex; flex-direction:column; }
+  .cardtitle { display:flex; align-items:center; gap:7px; color:#ff7a1a; font-size:13px; font-weight:600; }
+  .steps { color:#fff; font-size:34px; font-weight:300; margin-top:16px; }
+  .steps small { font-size:14px; color:#8f8f93; margin-left:4px; }
+  .wrow { display:flex; justify-content:space-between; margin-top:13px; font-size:13px; }
+  .wrow span { color:#8f8f93; }
+  .wrow b { color:#e8e8ea; font-weight:500; }
+  .goalbar { margin-top:14px; }
+  .goalbar .lbl { display:flex; justify-content:space-between; font-size:11px; color:#8f8f93; margin-bottom:5px; }
+  .goalbar .lbl b { color:#ff9a4d; font-weight:600; }
+  .bar { height:5px; border-radius:3px; background:#2a2a2d; overflow:hidden; }
+  .bar i { display:block; height:100%; width:84%; background:linear-gradient(90deg,#ff7a1a,#ffb27a); border-radius:3px; }
+
+  .map { position:relative; overflow:hidden; padding:0; }
+  .map svg.bgmap { position:absolute; inset:0; width:100%; height:100%; }
+  .locate { position:absolute; top:10px; left:10px; background:rgba(0,0,0,.55); color:#fff; font-size:11px; padding:4px 9px; border-radius:14px; display:flex; align-items:center; gap:5px; }
+  .locate i { width:7px; height:7px; border-radius:50%; background:#34d17b; display:inline-block; }
+  .zoom { position:absolute; right:10px; bottom:10px; width:40px; height:40px; border-radius:50%; background:#2f4f43; display:flex; align-items:center; justify-content:center; border:2px solid #fff; }
+  .maplabel { position:absolute; left:12px; bottom:10px; color:#fff; font-size:12px; background:rgba(0,0,0,.45); padding:3px 8px; border-radius:10px; }
+
+  .compass { display:flex; flex-direction:column; align-items:center; padding:12px 16px; }
+  .dial { width:82px; height:82px; border-radius:50%; border:1.5px solid #2e2e31; position:relative; margin-top:4px; background:radial-gradient(circle,#1c1c1f 55%,#141416); }
+  .dial .n { position:absolute; top:4px; left:50%; transform:translateX(-50%); color:#ff7a1a; font-size:10px; font-weight:700; }
+  .dial .tick { position:absolute; width:1.5px; height:6px; background:#3c3c40; left:50%; top:20px; transform-origin:50% 26px; }
+  .needle { position:absolute; left:50%; top:50%; width:2.5px; height:34px; transform:translate(-50%,-50%) rotate(45deg); }
+  .needle::before { content:""; position:absolute; top:0; left:50%; transform:translateX(-50%); border-left:3.5px solid transparent; border-right:3.5px solid transparent; border-bottom:19px solid #ff7a1a; }
+  .needle::after { content:""; position:absolute; bottom:0; left:50%; transform:translateX(-50%); border-left:3.5px solid transparent; border-right:3.5px solid transparent; border-top:14px solid #4a4a4e; }
+  .dial .center { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:7px; height:7px; border-radius:50%; background:#ff7a1a; }
+  .compass .dir { color:#fff; font-size:16px; font-weight:500; margin-top:8px; }
+  .compass .alt { color:#9a9a9e; font-size:11.5px; margin-top:4px; }
+  .lockstate { display:flex; align-items:center; gap:6px; margin-top:7px; background:#232326; border-radius:16px; padding:4px 12px; }
+  .lockstate svg { display:block; }
+  .lockstate span { color:#ffb27a; font-size:11.5px; }
+  .compass .hint { color:#6f6f73; font-size:11px; margin-top:6px; }
+
+  .folder { background:#161618; border-radius:44px; corner-shape:squircle; border:1px solid #232326; padding:12px 12px 10px; display:flex; flex-direction:column; }
+  .folder .ftitle { display:flex; align-items:center; gap:7px; color:#ff7a1a; font-size:13px; font-weight:600; padding-left:4px; }
+  .folder .fcount { color:#7d7d81; font-size:11px; font-weight:400; }
+  .folder .fline { height:1px; background:#26262a; margin:8px 0 0; }
+  .fgrid { flex:1; display:grid; grid-template-columns:repeat(3,1fr); align-content:space-between; gap:8px 6px; margin-top:9px; }
+  .fitem { display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .ficon { width:30px; height:30px; border-radius:10px; corner-shape:squircle; background:#1d1d20; display:flex; align-items:center; justify-content:center; }
+  .fitem span { font-size:10px; color:#c2c2c6; }
+  .fitem.exit .ficon { background:#ff7a1a; box-shadow:0 3px 10px rgba(255,122,26,.32); }
+  .fitem.exit span { color:#ff9a4d; font-weight:500; }
+
+  .dock { position:absolute; left:18px; right:18px; bottom:28px; background:rgba(24,24,27,.92); border-radius:40px; padding:16px 14px; display:flex; justify-content:space-around; align-items:center; }
+  .dock .dapp { width:56px; height:56px; border-radius:18px; corner-shape:squircle; display:flex; align-items:center; justify-content:center; }
+  .homebar { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:120px; height:4px; border-radius:2px; background:#5a5a5e; }
+
+  .notes { max-width:440px; color:#e4e4e7; }
+  .notes h2 { font-size:17px; font-weight:600; color:#fff; margin-bottom:14px; }
+  .notes h2 em { color:#ff7a1a; font-style:normal; }
+  .notes table { width:100%; border-collapse:collapse; font-size:13px; line-height:1.7; }
+  .notes th { text-align:left; color:#8f8f93; font-weight:500; padding:8px 10px; border-bottom:1px solid #3a3a3d; white-space:nowrap; }
+  .notes td { padding:13px 10px; border-bottom:1px solid #2c2c2f; vertical-align:top; }
+  .notes td:first-child { color:#ffb27a; white-space:nowrap; font-weight:600; }
+  .notes td b { color:#fff; font-weight:600; }
+  .notes .en { color:#8f8f93; font-size:12px; display:block; margin-top:2px; }
+</style>
+</head>
+<body data-page-node-id="Stf3VDEfde4BneDYcnvRzU">
+
+<div class="phone" data-page-node-id="l58mLsZ32Ph6UmnOWyV7WQ">
+  <div class="punch" data-page-node-id="ORt0wRpXQGENuZqxxTOrj2"></div>
+  <div class="glow" data-page-node-id="9gsSkv5fxsh3ACTztME544"></div>
+
+  <div class="statusbar" data-page-node-id="AdxugIeEd2M5gXBS0NbZlS">
+    <span data-page-node-id="tjRjYEu7YSFNVtjiWm01Q8">18:21</span>
+    <div class="sb-icons" data-page-node-id="dsLi4x0VWyFTcDAOfFFMEm">
+      <svg width="14" height="12" viewBox="0 0 14 12" data-page-node-id="uVBScF8kUFVVNV1VJBs7bV"><rect x="0" y="7" width="2.5" height="5" rx="1" fill="#fff" data-page-node-id="7qphnKS2yeaEbUbqgkPcIK"/><rect x="4" y="4.5" width="2.5" height="7.5" rx="1" fill="#fff" data-page-node-id="dfUpq7lR5x04vTb28xAWEN"/><rect x="8" y="2" width="2.5" height="10" rx="1" fill="#fff" data-page-node-id="LbKPyO3RupGYTaJO3YPOm9"/><rect x="12" y="0" width="2" height="12" rx="1" fill="#5a5a5e" data-page-node-id="HzBEAhrc5BZcM2ZUhTbyHC"/></svg>
+      <svg width="14" height="12" viewBox="0 0 14 12" data-page-node-id="wFmi5yNP18Cu8aOtnBnWEW"><path d="M7 10.5 L1.5 5 A7.5 7.5 0 0 1 12.5 5 Z" fill="#fff" data-page-node-id="ugDeI8t3l45Byxf4339c4r"/></svg>
+      <svg width="15" height="12" viewBox="0 0 15 12" data-page-node-id="YGrrPDJ2sz6LIPkEmczEVX"><rect x="0" y="1" width="13" height="10" rx="2.5" fill="none" stroke="#fff" stroke-width="1.4" data-page-node-id="A72PJmOmCwVW5CmGdnoBHB"/><path d="M4 4 L8 6 L4 8 Z" fill="#fff" data-page-node-id="TJN2RwcnAwIOmIf3ufGlrV"/></svg>
+      <div class="battery" data-page-node-id="44YALhedxvuTZn5NAzwU16"><i data-page-node-id="bYMFKLSsQixteLt6tUvssB"></i></div>
+      <span style="font-size:11px;background:#ff7a1a;border-radius:9px;padding:1px 6px;font-weight:700;" data-page-node-id="yI4rAKzkmUIYfhwztH03Fz">79</span>
+    </div>
+  </div>
+
+  <div class="modrow">
+    <div class="modechip"><i></i><span>户外模式已开启</span></div>
+    <div class="mright">可继续使用 <b>07:35</b></div>
+  </div>
+
+  <div class="grid" data-page-node-id="dJ8PV8SOxscfCW4n1Buiqa">
+    <div class="weather">
+      <div class="wtime"><div class="t">18:21</div><div class="d">9月9日 周三</div></div>
+      <div class="wdiv"></div>
+      <div class="wright">
+        <div class="wtop">
+          <svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="7.5" fill="#ffb733"/><g stroke="#ffb733" stroke-width="2.4" stroke-linecap="round"><line x1="17" y1="2.5" x2="17" y2="7"/><line x1="17" y1="27" x2="17" y2="31.5"/><line x1="2.5" y1="17" x2="7" y2="17"/><line x1="27" y1="17" x2="31.5" y2="17"/><line x1="6.8" y1="6.8" x2="10" y2="10"/><line x1="24" y1="24" x2="27.2" y2="27.2"/><line x1="6.8" y1="27.2" x2="10" y2="24"/><line x1="24" y1="10" x2="27.2" y2="6.8"/></g></svg>
+          <b class="wtemp">32°</b>
+          <div class="cond">晴 · 体感 35°</div>
+        </div>
+        <div class="tags"><span class="tag uv">UV 9 强</span><span class="tag">湿度 45%</span><span class="tag">西南风2级</span></div>
+        <div class="sunrow">
+          <div class="sun"><svg width="15" height="14" viewBox="0 0 15 14"><path d="M2.5 9.8 H12.5" stroke="#ffb733" stroke-width="1.4" stroke-linecap="round"/><path d="M4.8 9.8 A2.7 2.7 0 0 1 10.2 9.8" fill="none" stroke="#ffb733" stroke-width="1.4" stroke-linecap="round"/><path d="M7.5 1.3 V6 M5.6 3 L7.5 1.2 L9.4 3" fill="none" stroke="#ffb733" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>日出 <b>05:42</b></div>
+          <div class="sun"><svg width="15" height="14" viewBox="0 0 15 14"><path d="M2.5 4.6 H12.5" stroke="#ff7a1a" stroke-width="1.4" stroke-linecap="round"/><path d="M4.8 4.6 A2.7 2.7 0 0 0 10.2 4.6" fill="none" stroke="#ff7a1a" stroke-width="1.4" stroke-linecap="round"/><path d="M7.5 7.4 V12.4 M5.6 10.6 L7.5 12.5 L9.4 10.6" fill="none" stroke="#ff7a1a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>日落 <b>19:08</b></div>
+        </div>
+        <div class="daylight"><div class="dnow">距日落 47 分钟</div><div class="dbar"><i></i><em></em></div></div>
+      </div>
+    </div>
+
+    <div class="card walk" data-page-node-id="LEXucYXJqD0xeqe2Jovar9">
+      <div class="cardtitle" data-page-node-id="Ua2IY5uj22o1YMMeoLUZlu">
+        <svg width="14" height="14" viewBox="0 0 14 14" data-page-node-id="j6lTCzEkUCD7ptMON6yuri"><circle cx="7.4" cy="2.2" r="1.8" fill="#ff7a1a" data-page-node-id="wIkuf3MYucEpJQOrAagckQ"/><path d="M6.6 4.5 L4.8 7.5 L6 12.5 M6.6 4.5 L9 5.5 L10.8 8.5 M6.6 4.5 L4 6 L2.8 9 M7 8 L8.5 12.5" stroke="#ff7a1a" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="ADqbR31kRbFtkjw8HRVUL4"/></svg>
+        今日步行
+      </div>
+      <div class="steps" data-page-node-id="L07sQT7pf2OIofyXEyHJdI">8,432<small data-page-node-id="X6QURqElKOKDBymSTQlEwQ">步</small></div>
+      <div class="wrow" data-page-node-id="gXYy1IQcUEuc9SRdjzJL3n"><span data-page-node-id="fiab8CQ96krjISbgM9Xpkl">距离</span><b data-page-node-id="dqDjlCYRo9jSQsERgpdDNJ">5.86 公里</b></div>
+      <div class="wrow" data-page-node-id="W4XLQcE89rr1dCHlZeiUud"><span data-page-node-id="UAX6i1wTkCkBCTucpkMjXB">消耗</span><b data-page-node-id="ruDi12TluuFghvRnvFysbF">326 千卡</b></div>
+      <div class="goalbar" data-page-node-id="kE8LyaaHAgpWjSLbmUAuGk">
+        <div class="lbl" data-page-node-id="HaCE6VaxDUPiPG26lEKSAx"><span data-page-node-id="OCDTz2DJjd1FlIM9xpEu4c">目标 10,000 步</span><b data-page-node-id="WECAaeh3YY48HzFC1EUdls">84%</b></div>
+        <div class="bar" data-page-node-id="tOxYab4o4662qSuld9Mz7u"><i data-page-node-id="RDwrFaty6S0NOkkcwDDwok"></i></div>
+      </div>
+    </div>
+
+    <div class="card map" data-page-node-id="k5W75IIkRKmOJwZCbY9Gm6">
+      <svg class="bgmap" viewBox="0 0 200 220" preserveAspectRatio="xMidYMid slice" data-page-node-id="HVHtW4vtNl5xUCxcztmkmj">
+        <rect width="200" height="220" fill="#e8e6e1" data-page-node-id="16dReLU0NnxQ9JkMbrsZba"/>
+        <path d="M0 36 L200 12 L200 27 L0 52 Z" fill="#f6c96b" data-page-node-id="sGoZ0wLqZNH70TpCRcFEwD"/>
+        <path d="M-10 118 L210 95 L210 108 L-10 132 Z" fill="#fff" data-page-node-id="zYBOrH8WCtSDoCWIxHTB3F"/>
+        <path d="M-10 172 L210 150 L210 160 L-10 184 Z" fill="#fff" data-page-node-id="BPQnd5nSHCrpbC1MoEShS0"/>
+        <path d="M60 -10 L48 230 L60 230 L72 -10 Z" fill="#fff" data-page-node-id="eBgzhZycN2RKpnJGA7uzob"/>
+        <path d="M130 -10 L122 230 L132 230 L142 -10 Z" fill="#f6c96b" data-page-node-id="HbzevioUZv2hLhpX8JENQd"/>
+        <path d="M150 28 C180 42 190 66 185 90 C200 85 202 56 195 36 Z" fill="#b8dba4" data-page-node-id="wamWlKNFxPWlfklA7r4PTS"/>
+        <circle cx="100" cy="107" r="9" fill="#3b82f6" stroke="#fff" stroke-width="3" data-page-node-id="w7M0x2UNJrAM0gP2ZD9JIO"/>
+        <path d="M100 85 C90 85 84 93 84 101 C84 111 100 123 100 123 C100 123 116 111 116 101 C116 93 110 85 100 85 Z" fill="#ea4335" data-page-node-id="J8CLe5JlWkMFWs2SktGqSr"/>
+        <circle cx="100" cy="100" r="4.5" fill="#fff" data-page-node-id="ezBAiIFsAqC8Kr6PM4MKYz"/>
+      </svg>
+      <div class="locate" data-page-node-id="WyeajuJQetcBL60wTvywHb"><i data-page-node-id="St6Ox8sAsl67DrSldkxOlH"></i>GPS 已定位 · 误差 5m</div>
+      <div class="maplabel" data-page-node-id="e5mIXFudZzqR1EjPYVku6U">Google 地图 · 点击导航</div>
+      <div class="zoom" data-page-node-id="19NAuuwr8rTtpGetzc6xYX"><svg width="18" height="18" viewBox="0 0 18 18" data-page-node-id="x8NZTY8Z1EjX9wEaG1E5zj"><circle cx="7.5" cy="7.5" r="5" fill="none" stroke="#fff" stroke-width="2" data-page-node-id="s6Ar2UM05bIC21Mok24RUD"/><line x1="11.5" y1="11.5" x2="16" y2="16" stroke="#fff" stroke-width="2" stroke-linecap="round" data-page-node-id="HOkdmOm22vyO7s4uybHYD4"/></svg></div>
+    </div>
+
+    <div class="card compass" data-page-node-id="Ss6buB1QTHoFgGQEaxiVAM">
+      <div class="dial" data-page-node-id="uSGBPWFA0DoTTTI0N6qUEx">
+        <span class="n" data-page-node-id="UzGaXhv93WKWtFOCt1Y1By">N</span>
+        <span class="tick" style="transform:translateX(-50%) rotate(45deg);" data-page-node-id="QJGlKmaBZqXB00a5BZ1D5M"></span>
+        <span class="tick" style="transform:translateX(-50%) rotate(90deg);" data-page-node-id="FdNmgFhSXFw3QCuIWhKWrQ"></span>
+        <span class="tick" style="transform:translateX(-50%) rotate(135deg);" data-page-node-id="6PXKRr8wlA1BjVedPZLGCL"></span>
+        <span class="tick" style="transform:translateX(-50%) rotate(180deg);" data-page-node-id="B4jB5eCOqKu0uE96Dq5iht"></span>
+        <span class="tick" style="transform:translateX(-50%) rotate(225deg);" data-page-node-id="rtCcCjCIccWBvJaj0lig5z"></span>
+        <span class="tick" style="transform:translateX(-50%) rotate(270deg);" data-page-node-id="ANPCkFrkzUJrUM8y5qZzdN"></span>
+        <span class="tick" style="transform:translateX(-50%) rotate(315deg);" data-page-node-id="3LnRR9tYx3qg4sbiYuttSH"></span>
+        <div class="needle" data-page-node-id="EWWcpkwlaYaL77fYBE5Eri"></div>
+        <div class="center" data-page-node-id="CqHwXuwJNgWRJuB2UGgrFH"></div>
+      </div>
+      <div class="dir" data-page-node-id="ctm8LppO82EwaAYNDqIQ5n">东北 NE · 45°</div>
+      <div class="alt" data-page-node-id="E3gUh8tb5RvNbmvDJhKz32">海拔 1,280 米 · 867 hPa</div>
+      <div class="lockstate" data-page-node-id="cymrEN0XziD7lVvvmdhsa9">
+        <svg width="11" height="12" viewBox="0 0 11 12" data-page-node-id="R66LVyy8sMXSFimATFTFML"><rect x="0.5" y="5" width="10" height="7" rx="2" fill="#ff9a4d" data-page-node-id="JFBK9FjFVPciL4tWNYZunc"/><path d="M3 5 V3.5 A2.5 2.5 0 0 1 8 3.5 V5" fill="none" stroke="#ff9a4d" stroke-width="1.6" data-page-node-id="l3xUln1tVZqFAnEo1QWflJ"/></svg>
+        <span data-page-node-id="wo4vtTW7i9TMn6UKytKLfK">已锁定</span>
+      </div>
+      <div class="hint" data-page-node-id="lqNWmKmHg6dBk44ATgHfVP">双击解除锁定</div>
+    </div>
+
+    <div class="folder" data-page-node-id="mIib8l885lOkwJAlw4Itz6">
+      <div class="ftitle" data-page-node-id="707RYGA0al1XYELDhfvBLt">
+        <svg width="13" height="12" viewBox="0 0 14 12" data-page-node-id="wkotrP6No5OE0RcW4fq6sW"><path d="M1 2.5 A1.5 1.5 0 0 1 2.5 1 H5.2 L6.6 3 H11.5 A1.5 1.5 0 0 1 13 4.5 V9.5 A1.5 1.5 0 0 1 11.5 11 H2.5 A1.5 1.5 0 0 1 1 9.5 Z" fill="#ff7a1a" data-page-node-id="EY8tNcT0sdiBismwYtd0Tn"/></svg>
+        户外工具
+        <span class="fcount" data-page-node-id="EAwCCCVg7QP8OyOsZxVDIC">9</span>
+      </div>
+      <div class="fline" data-page-node-id="z0G6wBxopzWxcMfTKWxR09"></div>
+      <div class="fgrid" data-page-node-id="y8NxLh32RP1yob5G2FA8As">
+        <div class="fitem" data-page-node-id="99rCw7i455UuME15qmpOfE">
+          <div class="ficon" data-page-node-id="msS643paFIULA9By53YCWO">
+            <svg width="19" height="19" viewBox="0 0 30 30" data-page-node-id="o6AtuECNiXTDWIN2ypFURw"><path d="M15 3 L18 9 L15 8 L12 9 Z" fill="#34a853" data-page-node-id="HleAvKoGPHfEeDMVGLSLO8"/><path d="M26 11 L20.5 15.5 L21 12.5 L19 10.5 Z" fill="#fbbc05" data-page-node-id="tGxQsz2LDqju99TbMYxuTm"/><path d="M22 26 L17.5 21.5 L20 20.5 L21 17.5 Z" fill="#34a853" data-page-node-id="IpzFnUEVqV7BGigYFBpG5L"/><path d="M8 26 L10.5 20 L12.5 22.5 L15.5 22 Z" fill="#fbbc05" data-page-node-id="irjE9Dhy0f9hhXYHuq5aBf"/><path d="M3 12 L9.5 13.5 L7.5 15.5 L8.5 18.5 Z" fill="#fbbc05" data-page-node-id="Mye4tDBl0gZNIQ0NJIZuMx"/><circle cx="15" cy="15" r="4.5" fill="#4285f4" stroke="#fff" stroke-width="1.6" data-page-node-id="gcGJDEEPzHGzMZrfNwfWQV"/></svg>
+          </div>
+          <span data-page-node-id="rdAUpgdtiSSxm4A04XbQHl">地图</span>
+        </div>
+        <div class="fitem" data-page-node-id="RyzqkALkqroaLnb9oFRHHX">
+          <div class="ficon" data-page-node-id="7KuvXT5tLkxlNNqIlrCZhV">
+            <svg width="19" height="19" viewBox="0 0 30 30" data-page-node-id="FsIIzCVHK8yWEfeTbC5rcD"><circle cx="15" cy="15" r="13" fill="#ff0000" data-page-node-id="V94XycKFkgFFCNgnvlsAG1"/><rect x="11" y="10" width="4" height="10" rx="1.5" fill="#fff" data-page-node-id="JGaTmxaaQLSjgkFs2zQa4X"/><rect x="16.5" y="10" width="4" height="10" rx="1.5" fill="#fff" data-page-node-id="kLCfJtDHCUUKujpt6XyRAM"/></svg>
+          </div>
+          <span data-page-node-id="Y8KZ0gR3p8NmE0IEQZwU8E">YT Music</span>
+        </div>
+        <div class="fitem exit" data-page-node-id="j5qNAJcyOZGMDDn6SmFHvr">
+          <div class="ficon" data-page-node-id="M1PtXiWOsSyNK4znVWNhWM">
+            <svg width="18" height="18" viewBox="0 0 28 28" data-page-node-id="Lf5sDjkKJyLzXyjyKUDQkf"><rect x="4" y="4" width="13" height="20" rx="2.5" fill="none" stroke="#fff" stroke-width="2.6" data-page-node-id="l0mSHBMiX1ody9gLxHI6jt"/><path d="M12 14 H24 M20 10 L24 14 L20 18" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="DWwHvU4u2TcPvMn12ImFIN"/></svg>
+          </div>
+          <span data-page-node-id="o5EV6d3KZPuO93zc384uCE">退出模式</span>
+        </div>
+        <div class="fitem" data-page-node-id="BP0lFKwm7fWblXabbmoZXK">
+          <div class="ficon" data-page-node-id="GpwEjccCuOgEWSeHFEHLNV">
+            <svg width="18" height="18" viewBox="0 0 24 24" data-page-node-id="D5Ala7UFwegidB83CNCbtJ"><circle cx="12" cy="12" r="10" fill="none" stroke="#3d3d41" stroke-width="1.6" data-page-node-id="dBmLtW7mrC83BXqthCbZ11"/><path d="M12 5 L15.5 12 L12 10.5 L8.5 12 Z" fill="#ff7a1a" data-page-node-id="T5kIJZo9DGULSIDKg015xJ"/><path d="M12 19 L8.5 12 L12 13.5 L15.5 12 Z" fill="#5a5a5e" data-page-node-id="YUohtELSkLdtzy7oFDjGs2"/></svg>
+          </div>
+          <span data-page-node-id="oo0FOA8ihGMCifL9T5AQCH">指南针</span>
+        </div>
+        <div class="fitem" data-page-node-id="IyPtCtsIx8vQ6V1gD4RNuo">
+          <div class="ficon" data-page-node-id="bNEYhIMsZ89TaDDe8mJZsB">
+            <svg width="18" height="18" viewBox="0 0 24 24" data-page-node-id="pvwKMsa9w8vLgSeHStk59m"><circle cx="12" cy="12" r="10" fill="#e0382c" data-page-node-id="PGAd515XFxKxnoA9woEPgb"/><text x="12" y="15.6" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" data-page-node-id="Bltr5bPoVLsBJTlmwBGM8s">SOS</text></svg>
+          </div>
+          <span data-page-node-id="zAFIfp1b6pJQVLT2OUIcpn">SOS</span>
+        </div>
+        <div class="fitem" data-page-node-id="D02PROBu2iPFfg9r5MwplU">
+          <div class="ficon" data-page-node-id="kPxwuwFZxoSCG8E5ClTe8F">
+            <svg width="18" height="18" viewBox="0 0 24 24" data-page-node-id="oFkzpDDZrNRxtalE2DQoFr"><rect x="8" y="2.5" width="8" height="3" rx="1.2" fill="#ffb733" data-page-node-id="3SAkQx02Guwf3jztHNV6Ck"/><path d="M9 6 H15 L15.5 14 H8.5 Z" fill="#ffb733" data-page-node-id="tLPucDsRuqDgMki87aiMDl"/><rect x="7" y="14.5" width="10" height="7" rx="1.6" fill="#6f6f73" data-page-node-id="vvwDbtBEMXx5G82IOZLUcs"/></svg>
+          </div>
+          <span data-page-node-id="gIAYbVGjGqlovIkXHqA3LF">手电筒</span>
+        </div>
+        <div class="fitem" data-page-node-id="YdHXm75p7oS5jLs98HOdZp">
+          <div class="ficon" data-page-node-id="pkkvvpv6miFtTDtSIvUfId">
+            <svg width="18" height="18" viewBox="0 0 24 24" data-page-node-id="tHEi0lyKLlnAFxMCrTiswf"><path d="M2 18 L9 7 L14 13 L18 8 L22 18 Z" fill="#5a5a5e" data-page-node-id="LX9GnqItByaD1dI9xlHXBH"/><path d="M9 7 L13.4 13.8 L14 13 L18 8 L12.6 6 Z" fill="#ffb27a" data-page-node-id="swhjrUVdeIYNAPfto4Skhw"/></svg>
+          </div>
+          <span data-page-node-id="GobSlaDmIzsUHuJvAJtgwi">海拔表</span>
+        </div>
+        <div class="fitem" data-page-node-id="oSviHSh16XFXq0QYyFItU7">
+          <div class="ficon" data-page-node-id="UAjxbt6hgHIaZIPn73yBAT">
+            <svg width="18" height="18" viewBox="0 0 24 24" data-page-node-id="IAPsBGsPQh81fRqHIFLnwh"><circle cx="9" cy="4.2" r="2.2" fill="#ff7a1a" data-page-node-id="0TNCcr1t6CX7YxG0scFail"/><path d="M8 7 L5 12 L7 21 M8 7 L11.5 8.5 L14.5 14 M8 9 L4.5 10.5 L3 15 M8.6 14 L10.5 21" stroke="#ff7a1a" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="JX1BvHUliGc2FHF1s3uUQ6"/></svg>
+          </div>
+          <span data-page-node-id="PAmKxuAK8E8eQj1ABGBF8p">计步</span>
+        </div>
+        <div class="fitem" data-page-node-id="X6yHHcXnH6vg1hds38NujC">
+          <div class="ficon" data-page-node-id="1cabDZIApDwaY0YDqYIOJv">
+            <svg width="18" height="18" viewBox="0 0 24 24" data-page-node-id="K9egjYFX10Lpncf3jaabpR"><circle cx="9.5" cy="9.5" r="4.5" fill="#ffb733" data-page-node-id="cKs7nsZHYFPDSADE8uEKeI"/><path d="M7 18 H19 A3.5 3.5 0 0 0 15.5 14.5 H8.5 A3.5 3.5 0 0 0 7 18 Z" fill="#9aa0a6" data-page-node-id="rQ5pCjYCjupNHRz1EUIuZM"/></svg>
+          </div>
+          <span data-page-node-id="5OQtXm9Hbg0NP1JkWyuGab">天气</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dock" data-page-node-id="rXYfCkPfJoCPaxlpDkY2iS">
+    <div class="dapp" style="background:#ff7a1a;" data-page-node-id="n2Tbh7ewhu7Y2ovFvLIdqP">
+      <svg width="28" height="28" viewBox="0 0 26 26" data-page-node-id="UCRbXm6D9lG0VGZD35DPHi"><path d="M7.5 4.5 C8.5 4.5 9.5 6 9.8 7.5 C10 8.5 9.5 9.3 8.8 9.9 C9.6 11.8 11.5 13.8 13.4 14.7 C14 14 14.8 13.5 15.8 13.7 C17.3 14 19 15 19 16.2 C19 17.8 17.6 19 16 19 C10.5 19 5.5 14 5.5 8.5 C5.5 6.5 6 4.5 7.5 4.5 Z" fill="#fff" data-page-node-id="LbnKGdPMbqDm4j3XKrRoHe"/></svg>
+    </div>
+    <div class="dapp" style="background:#ff7a1a;" data-page-node-id="xuPOdKAXROAQBfEEJUG6Om">
+      <svg width="28" height="28" viewBox="0 0 26 26" data-page-node-id="l6RvVaK6ZzhxjcZwXNczyg"><path d="M13 4 C8 4 4 7.5 4 12 C4 14.5 5.3 16.7 7.3 18.1 L6.5 21.5 L10.3 19.5 C11.2 19.8 12.1 20 13 20 C18 20 22 16.5 22 12 C22 7.5 18 4 13 4 Z" fill="#fff" data-page-node-id="R8inqJDis3WAgN0Q9bJDoh"/><circle cx="9.5" cy="12" r="1.3" fill="#ff7a1a" data-page-node-id="8pu8SQW2yd95LRaZBYJrNo"/><circle cx="13" cy="12" r="1.3" fill="#ff7a1a" data-page-node-id="SSiGOhqvrYz6UkJ5mpT733"/><circle cx="16.5" cy="12" r="1.3" fill="#ff7a1a" data-page-node-id="sGs0rIyo7HO2AK9LR843TD"/></svg>
+    </div>
+    <div class="dapp" style="background:#fff;" data-page-node-id="CW1HhmHfjifDn7iGuV9GQx">
+      <svg width="38" height="38" viewBox="0 0 34 34" data-page-node-id="1rJ4uR2r6Oqkm8PjdoNdxx"><circle cx="17" cy="17" r="14" fill="#fff" stroke="#e8e8e8" data-page-node-id="bQeClOldGUHigM8ADK5RDB"/><path d="M17 3 A14 14 0 0 1 29.5 10.5 L17 10.5 Z" fill="#ea4335" data-page-node-id="FQ9ZFQ8V2CSbx4nRVzCWeC"/><path d="M29.5 10.5 A14 14 0 0 1 24 28 L17.5 17 Z" fill="#fbbc05" data-page-node-id="SbpGvwEisg7HadTKS4FgC1"/><path d="M24 28 A14 14 0 0 1 4.5 23.5 L16.5 17 Z" fill="#34a853" data-page-node-id="RUzqzpup3vwhkpilegH2eM"/><path d="M4.5 23.5 A14 14 0 0 1 17 3 L17 10.5 A7 7 0 0 0 10.8 20 Z" fill="#4285f4" data-page-node-id="MjNye7H0hFmE6TIMLDbL0t"/><circle cx="17" cy="17" r="6.2" fill="#fff" data-page-node-id="CXOj6JniDVHXnahSZJe20D"/><circle cx="17" cy="17" r="4.8" fill="#4285f4" data-page-node-id="Fkb2ljGqXk3Hpr89YPNQTV"/></svg>
+    </div>
+    <div class="dapp" style="background:#ff7a1a;" data-page-node-id="nvnNGHU9XCQHxX4fFrkvQK">
+      <svg width="28" height="28" viewBox="0 0 26 26" data-page-node-id="0XoubEhvEzHxnVwiBmE1VB"><rect x="3.5" y="7.5" width="15" height="11" rx="2.5" fill="#fff" data-page-node-id="FEAElzhqi9uG3cv9FBBg7s"/><path d="M18.5 11.5 L23 9 L23 17 L18.5 14.5 Z" fill="#fff" data-page-node-id="KCkfppo2qWaxNm1LFKf4Gs"/><circle cx="11" cy="13" r="3" fill="#ff7a1a" data-page-node-id="4tY4pQVC8TgYMxwJEjgHnQ"/></svg>
+    </div>
+  </div>
+  <div class="homebar" data-page-node-id="DBa1p2tiRCY3riGGoJocZz"></div>
+</div>
+
+<div class="notes" data-page-node-id="Pldz7bzG1ty7WXt6lAxPV6">
+  <h2 data-page-node-id="2nhlGViKz0qlUxLVFExfFi">户外模式 · <em data-page-node-id="c1jpNaJjeGsUodRAAIxo88">内容优化点</em></h2>
+  <table data-page-node-id="j6PfR7yN910aRYrNt26cTn">
+    <tr data-page-node-id="q73lTkmKRyn7ehDYoAilLB"><th data-page-node-id="CwCC4rlj7aDC1Xgq5LTDIu">模块</th><th data-page-node-id="Yo3iZdtQcBpGCSWn3EbAxK">优化内容<span class="en" data-page-node-id="FJmPoArDuDGoxeBT7vcKpq">What changed</span></th></tr>
+    <tr data-page-node-id="P1T3aJfFEAgQQhSfCM95DL"><td data-page-node-id="TFCHIYoC1pKBVFSY0Yz7fo">布局规格</td><td data-page-node-id="l2mGRWjl39KJ3N6HMRLyfI">按桌面网格校正尺寸：<b data-page-node-id="iHrENTDYCOOGUFtDHu0gEw">天气 = 4×2（通栏）</b>，占满两列、高度与 2×2 一致；<b data-page-node-id="gXvRlNSCzvASjUQCK47q3b">今日步行 / 地图 / 指南针 / 户外工具 = 2×2 正方形</b>，行高统一 220px<span class="en" data-page-node-id="RiVUkn4RqU3d4lrl35D7yB">Weather widget spans 4×2 full width; all other widgets are equal 2×2 squares</span></td></tr>
+    <tr data-page-node-id="MDTY7tBKHq8Duf7TTpGUQQ"><td>时间、天气、温度、风、日出日落合并为同一个 4×2 小部件：左侧<b>时钟 18:21 + 9月9日 周三</b>，右侧<b>32° / UV / 湿度 / 西南风 / 日出 05:42 / 日落 19:08</b> + 日照进度条（距日落 47 分钟）<span class="en">Time, weather, temp, wind and sunrise/sunset merged into one 4x2 widget</span></td></tr>
+    <tr data-page-node-id="xgAxS9am99JxlGmGJlmEek"><td data-page-node-id="UhcceCkFMM823fHtAYNwu6">Dock 栏</td><td data-page-node-id="vDm0X15A7KJ24UFsX5tKqM">移除图标下方文字标签，图标放大到 <b data-page-node-id="L6SJGTB4GVb85QMnrUAc3d">58px</b>、圆角 17px<span class="en" data-page-node-id="zfHAlb3tQD0O9X5EtG9oAx">Removed dock labels, enlarged icons</span></td></tr>
+    <tr data-page-node-id="XERYry2KumF26TvcBSXlV0"><td data-page-node-id="WChegprV3iLPEvba4mTkdZ">工具文件夹</td><td data-page-node-id="H7LC5adxFnX5pH0w3BtC2t">地图 / YT Music / 退出模式 收敛为<b data-page-node-id="y9v7gJJZEgI7EM1Q0SYzFc">「户外工具」文件夹</b>（3×3，9 图标）：地图、YT Music、退出模式、指南针、SOS、手电筒、海拔表、计步、天气；退出模式橙色高亮<span class="en" data-page-node-id="rVfpU24eyAKK4pIbuiEFDM">All app icons grouped into a 9-slot folder; exit action highlighted</span></td></tr>
+    <tr data-page-node-id="TbPuWzZjDEukLmEIYXJfmy"><td data-page-node-id="qAUwJ5w37RZngOQkgFM39w">今日步行</td><td data-page-node-id="iKuSGKhZVO7tuf6qWuNmrG">全 0 → <b data-page-node-id="48Rpaep1rLgUc1wobzyiPz">8,432 步 / 5.86 公里 / 326 千卡</b>；「英里」统一为「公里」；新增<b data-page-node-id="cG7sYGB0QY1k10VRFTLXta">目标进度条</b>（84%）<span class="en" data-page-node-id="LFPYNQHHONZ02pzLpFdHH0">Realistic data, unified units to km, goal progress bar</span></td></tr>
+    <tr data-page-node-id="GrnUV7bY5M7tArRfQ2eNuD"><td data-page-node-id="SWo7ACVCZxTBra79OGZ6KS">地图</td><td data-page-node-id="u3jAuKlk9kBhHdEFNImkxD">新增 <b data-page-node-id="xbsMad5mJQREH9zB829sVb">GPS 定位状态（误差 5m）</b>、位置大头针、「点击导航」提示<span class="en" data-page-node-id="sDRlbVBpu5DZlWlLhhBULT">GPS status chip, location pin, tap-to-navigate hint</span></td></tr>
+    <tr data-page-node-id="wmdm4BG4aNEIxXx1DfXd9h"><td data-page-node-id="KpZ6bH0jbfoMx3qN0FTVpi">指南针</td><td data-page-node-id="HmGAzGuwvCy4mxIRHs7UxB">保留「已锁定 / 双击解除」，新增<b data-page-node-id="PLZmkC5wGutCShJl3rCr60">方位 NE 45°、海拔 1,280m、867 hPa</b><span class="en" data-page-node-id="WJndYtw25Bk5w4BeAYqLGl">Heading, altitude and barometric pressure</span></td></tr>
+  </table>
+</div>
+
+</body>
+</html>

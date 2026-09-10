@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="AOYM8eS6aWDDy3xqLr1sYU">
+<head data-page-node-id="qDuSQDn8UXiP4HHDpHTSKo">
+<meta charset="UTF-8" data-page-node-id="5wwK5W3p6TgLPOCcAKHEYC">
+<meta name="viewport" content="width=device-width,initial-scale=1" data-page-node-id="TEORgpJ6f2N56t3POGznaa">
+<title>户外模式 · 可交互原型</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif; }
+  body { background:#222225; display:flex; flex-wrap:wrap; gap:56px; justify-content:center; padding:56px 32px 72px; color:#e4e4e7; }
+
+  .phone { width:440px; height:1002px; background:#000; border-radius:36px; border:3px solid #3a3a3d; overflow:hidden; position:relative; flex-shrink:0; }
+  .punch { position:absolute; top:14px; left:50%; transform:translateX(-50%); width:14px; height:14px; border-radius:50%; background:#1a1a1c; border:2px solid #2c2c2f; z-index:9; }
+  .glow { position:absolute; right:-60px; bottom:180px; width:300px; height:300px; background:radial-gradient(circle,rgba(255,122,26,.10),transparent 65%); pointer-events:none; }
+  .statusbar { display:flex; justify-content:space-between; align-items:center; padding:18px 24px 0; color:#fff; font-size:14px; font-weight:600; }
+  .sb-icons { display:flex; gap:6px; align-items:center; }
+  .battery { border:1.5px solid #fff; border-radius:3.5px; width:24px; height:12px; position:relative; padding:1.5px; }
+  .battery::after { content:""; position:absolute; right:-4px; top:3px; width:2px; height:5px; background:#fff; border-radius:0 1px 1px 0; }
+  .battery i { display:block; height:100%; width:79%; background:#ff7a1a; border-radius:1.5px; }
+  .clockrow { display:flex; justify-content:space-between; align-items:center; padding:30px 26px 0; }
+  .clock h1 { color:#fff; font-size:52px; font-weight:300; letter-spacing:1px; line-height:1; }
+  .clock p { color:#9a9a9e; font-size:15px; margin-top:8px; }
+  .modechip { display:flex; align-items:center; gap:6px; border:1px solid rgba(255,122,26,.4); background:rgba(255,122,26,.12); border-radius:20px; padding:6px 13px; }
+  .modechip i { width:7px; height:7px; border-radius:50%; background:#ff7a1a; display:block; }
+  .modechip span { color:#ffb27a; font-size:12px; }
+
+  .modrow { display:flex; justify-content:space-between; align-items:center; padding:16px 22px 0; }
+  .mright { color:#9a9a9e; font-size:12.5px; }
+  .mright b { color:#ff7a1a; font-weight:600; }
+  .widgetarea { position:absolute; left:0; right:0; top:116px; bottom:140px; overflow-y:auto; overflow-x:hidden; padding:0 0 2px; }
+  .widgetarea::-webkit-scrollbar { width:0; }
+  .wgrid { display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:74.5px; gap:46px 18px; padding:28px 22px 0; }
+  .wslot { position:relative; grid-row:span 2; border-radius:44px; corner-shape:squircle; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; }
+  .wslot.half { grid-row:span 1; }        /* 2×1：半高（两个叠起来 + 行间距 = 一个 2×2） */
+  .wslot.wide { grid-column:1 / -1; }
+  .wslot.dragging { opacity:.35; }
+  .wslot .handle { position:absolute; top:9px; left:9px; width:24px; height:24px; border-radius:8px; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; cursor:grab; z-index:6; }
+  .wslot .ctrl { position:absolute; top:9px; right:9px; display:none; gap:6px; z-index:6; }
+  .wslot.editing .handle, .wslot.editing .ctrl { display:flex; }
+  .wslot.editing .card { animation:jiggle .26s ease-in-out infinite; }
+  @keyframes jiggle { 0%,100% { transform:rotate(-.6deg); } 50% { transform:rotate(.6deg); } }
+  .ibtn { width:24px; height:24px; border-radius:8px; border:none; background:rgba(0,0,0,.62); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .ibtn:hover { background:#ff7a1a; }
+  .ibtn svg { display:block; }
+  .empty { border:1.5px dashed #3a3a3d; border-radius:22px; height:210px; display:flex; align-items:center; justify-content:center; color:#6f6f73; font-size:13px; grid-row:span 2; }
+
+  .card { background:#161618; border-radius:44px; corner-shape:squircle; padding:18px; border:1px solid #232326; height:100%; position:relative; overflow:hidden; }
+  .cardtitle { display:flex; align-items:center; gap:7px; color:#ff7a1a; font-size:13px; font-weight:600; }
+
+  .weather { display:flex; align-items:center; justify-content:space-between; padding:20px 24px; }
+  .wleft { display:flex; align-items:center; gap:14px; }
+  .wtime { min-width:112px; }
+  .wtime .t { color:#fff; font-size:46px; font-weight:300; line-height:1; letter-spacing:1px; }
+  .wtime .d { color:#9a9a9e; font-size:13px; margin-top:9px; white-space:nowrap; }
+  .wdiv { width:1px; background:#26262a; margin:0 18px; align-self:stretch; }
+  .wtop { display:flex; align-items:center; gap:10px; width:100%; }
+  .wtop .cond { margin:0 0 0 auto; }
+  .wtime { min-width:112px; }
+  .wtime .t { color:#fff; font-size:46px; font-weight:300; line-height:1; letter-spacing:1px; }
+  .wtime .d { color:#9a9a9e; font-size:13px; margin-top:9px; white-space:nowrap; }
+  .wdiv { width:1px; background:#26262a; margin:0 18px; align-self:stretch; }
+  .wtop { display:flex; align-items:center; gap:10px; width:100%; }
+  .wtop .cond { margin:0 0 0 auto; }
+  .wtemp { color:#fff; font-size:40px; font-weight:300; line-height:1; }
+  .cond { color:#c9c9cd; font-size:13px; margin-top:9px; white-space:nowrap; }
+  .wright { flex:1; display:flex; flex-direction:column; align-items:flex-end; gap:12px; }
+  .tags { display:flex; gap:5px; }
+  .tag { font-size:10px; padding:2px 6px; white-space:nowrap; border-radius:20px; background:#1d1d20; color:#ffb27a; border:1px solid rgba(255,122,26,.35); }
+  .tag.uv { background:rgba(255,122,26,.16); color:#ff9a4d; font-weight:600; }
+  .sunrow { display:flex; gap:12px; }
+  .sun { display:flex; align-items:center; gap:5px; font-size:11.5px; color:#8f8f93; }
+  .sun b { color:#e8e8ea; font-weight:500; }
+  .daylight { width:100%; }
+  .daylight .dnow { font-size:11px; color:#ff9a4d; font-weight:600; text-align:right; margin-bottom:5px; }
+  .dbar { height:5px; border-radius:3px; background:#232326; position:relative; }
+  .dbar i { position:absolute; left:0; top:0; height:100%; width:88%; background:linear-gradient(90deg,#4a4a4e,#ffb733 60%,#ff7a1a); border-radius:3px; }
+  .dbar em { position:absolute; top:-3px; left:88%; width:11px; height:11px; border-radius:50%; background:#fff; border:2px solid #ff7a1a; }
+
+  .steps { color:#fff; font-size:30px; font-weight:300; margin-top:10px; }
+  .steps small { font-size:14px; color:#8f8f93; margin-left:4px; }
+  .wrow { display:flex; justify-content:space-between; margin-top:8px; font-size:13px; }
+  .wrow span { color:#8f8f93; }
+  .wrow b { color:#e8e8ea; font-weight:500; }
+  .goalbar { margin-top:9px; }
+  .goalbar .lbl { display:flex; justify-content:space-between; font-size:11px; color:#8f8f93; margin-bottom:5px; }
+  .goalbar .lbl b { color:#ff9a4d; font-weight:600; }
+  .bar { height:5px; border-radius:3px; background:#2a2a2d; overflow:hidden; }
+  .bar i { display:block; height:100%; width:84%; background:linear-gradient(90deg,#ff7a1a,#ffb27a); border-radius:3px; }
+
+  .map { padding:0; }
+  .map svg.bgmap { position:absolute; inset:0; width:100%; height:100%; }
+  .locate { position:absolute; top:10px; left:10px; background:rgba(0,0,0,.55); color:#fff; font-size:11px; padding:4px 9px; border-radius:14px; display:flex; align-items:center; gap:5px; }
+  .locate i { width:7px; height:7px; border-radius:50%; background:#34d17b; display:inline-block; }
+  .zoom { position:absolute; right:10px; bottom:10px; width:40px; height:40px; border-radius:50%; background:#2f4f43; display:flex; align-items:center; justify-content:center; border:2px solid #fff; }
+  .maplabel { position:absolute; left:12px; bottom:10px; color:#fff; font-size:12px; background:rgba(0,0,0,.45); padding:3px 8px; border-radius:10px; }
+
+  .compass { display:flex; flex-direction:column; align-items:center; padding:8px 16px; }
+  .dial { width:64px; height:64px; border-radius:50%; border:1.5px solid #2e2e31; position:relative; margin-top:4px; background:radial-gradient(circle,#1c1c1f 55%,#141416); }
+  .dial .n { position:absolute; top:4px; left:50%; transform:translateX(-50%); color:#ff7a1a; font-size:10px; font-weight:700; }
+  .dial .tick { position:absolute; width:1.5px; height:5px; background:#3c3c40; left:50%; top:14px; transform-origin:50% 20px; }
+  .needle { position:absolute; left:50%; top:50%; width:2.5px; height:34px; transform:translate(-50%,-50%) rotate(45deg); }
+  .needle::before { content:""; position:absolute; top:0; left:50%; transform:translateX(-50%); border-left:3.5px solid transparent; border-right:3.5px solid transparent; border-bottom:19px solid #ff7a1a; }
+  .needle::after { content:""; position:absolute; bottom:0; left:50%; transform:translateX(-50%); border-left:3.5px solid transparent; border-right:3.5px solid transparent; border-top:14px solid #4a4a4e; }
+  .dial .center { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:7px; height:7px; border-radius:50%; background:#ff7a1a; }
+  .compass .dir { color:#fff; font-size:16px; font-weight:500; margin-top:8px; }
+  .compass .alt { color:#9a9a9e; font-size:11.5px; margin-top:4px; }
+  .lockstate { display:flex; align-items:center; gap:6px; margin-top:7px; background:#232326; border-radius:16px; padding:4px 12px; }
+  .lockstate span { color:#ffb27a; font-size:11.5px; }
+  .compass .hint { color:#6f6f73; font-size:11px; margin-top:6px; }
+
+  .folder { padding:12px 12px 10px; display:flex; flex-direction:column; }
+  .folder .ftitle { display:flex; align-items:center; gap:7px; color:#ff7a1a; font-size:13px; font-weight:600; padding-left:4px; }
+  .folder .fcount { color:#7d7d81; font-size:11px; font-weight:400; }
+  .folder .fline { height:1px; background:#26262a; margin:6px 0 0; }
+  .fgrid { flex:1; display:grid; grid-template-columns:repeat(3,1fr); align-content:space-between; gap:5px 6px; margin-top:6px; }
+  .fitem { display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .ficon { width:26px; height:26px; border-radius:9px; corner-shape:squircle; background:#1d1d20; display:flex; align-items:center; justify-content:center; }
+  .fitem span { font-size:10px; color:#c2c2c6; }
+  .fitem.exit .ficon { background:#ff7a1a; box-shadow:0 3px 10px rgba(255,122,26,.32); }
+  .fitem.exit span { color:#ff9a4d; font-weight:500; }
+  .fempty { color:#6f6f73; font-size:11px; text-align:center; align-self:center; margin:auto 0; }
+
+  .clockw { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; }
+  .clockw .t { color:#fff; font-size:44px; font-weight:300; letter-spacing:1px; }
+  .clockw .d { color:#9a9a9e; font-size:13px; margin-top:8px; }
+
+  .music { display:flex; align-items:center; gap:16px; }
+  .cover { width:96px; height:96px; border-radius:18px; corner-shape:squircle; background:linear-gradient(135deg,#ff7a1a,#ffb733 60%,#5a3b16); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .minfo { flex:1; }
+  .minfo .tt { color:#fff; font-size:16px; font-weight:500; }
+  .minfo .ar { color:#9a9a9e; font-size:12.5px; margin-top:5px; }
+  .mbar { height:4px; border-radius:2px; background:#2a2a2d; margin-top:14px; position:relative; }
+  .mbar i { position:absolute; left:0; top:0; height:100%; width:42%; background:#ff7a1a; border-radius:2px; }
+  .mtime { display:flex; justify-content:space-between; font-size:10.5px; color:#7d7d81; margin-top:6px; }
+  .mctl { display:flex; gap:22px; align-items:center; margin-top:14px; }
+
+  .alti { display:flex; flex-direction:column; }
+  .alti .v { color:#fff; font-size:32px; font-weight:300; margin-top:16px; }
+  .alti .v small { font-size:13px; color:#8f8f93; margin-left:4px; }
+  .alti .sub { color:#9a9a9e; font-size:12px; margin-top:6px; }
+
+  .batw { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; }
+  .batw .ring { width:104px; height:104px; border-radius:50%; background:conic-gradient(#ff7a1a 0turn .79turn,#2a2a2d .79turn 1turn); display:flex; align-items:center; justify-content:center; }
+  .batw .ring div { width:82px; height:82px; border-radius:50%; background:#161618; display:flex; align-items:center; justify-content:center; flex-direction:column; }
+  .batw .ring b { color:#fff; font-size:26px; font-weight:400; }
+  .batw .ring span { color:#8f8f93; font-size:10.5px; margin-top:2px; }
+  .batw .left { color:#9a9a9e; font-size:12px; margin-top:12px; }
+
+  .sosw { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:12px; }
+  .sosw .sbtn { width:96px; height:96px; border-radius:50%; background:#e0382c; display:flex; align-items:center; justify-content:center; color:#fff; font-size:22px; font-weight:700; letter-spacing:1px; box-shadow:0 6px 22px rgba(224,56,44,.35); }
+  .sosw p { color:#9a9a9e; font-size:11.5px; }
+
+  /* ── 2×1（半高）小部件 ─────────────────────────────── */
+  .wslot.half .card { padding:10px 12px; border-radius:28px; }   /* 半高卡按比例收小圆角，避免 44px 被裁剪成胶囊 */
+  .wk1 { display:flex; flex-direction:column; justify-content:center; gap:6px; height:100%; }
+  .wk1 .top { display:flex; align-items:center; justify-content:space-between; }
+  .wk1 .lbl { display:flex; align-items:center; gap:5px; color:#ff7a1a; font-size:11px; font-weight:600; }
+  .wk1 .num { color:#fff; font-size:22px; font-weight:300; line-height:1; }
+  .wk1 .num small { font-size:11px; color:#8f8f93; margin-left:3px; }
+  .wk1 .pct { color:#ff9a4d; font-size:11.5px; font-weight:600; }
+  .wk1 .bar { height:4px; border-radius:2px; background:#26262a; overflow:hidden; }
+  .wk1 .bar i { display:block; height:100%; width:84%; border-radius:2px; background:linear-gradient(90deg,#ff7a1a,#ffa257); }
+  .sos1 { display:flex; align-items:center; gap:11px; height:100%; }
+  .sos1 .sbtn { flex-shrink:0; width:40px; height:40px; border-radius:13px; corner-shape:squircle; background:#e0382c; color:#fff; font-size:13px; font-weight:700; letter-spacing:.5px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(224,56,44,.35); }
+  .sos1 .txt b { display:block; color:#fff; font-size:12.5px; font-weight:600; }
+  .sos1 .txt span { color:#9a9a9e; font-size:10.5px; }
+
+  /* ── 部件库缩略图（真实小部件等比缩小）─────────────── */
+  .thumb { position:relative; width:100%; height:100px; margin-bottom:10px; border-radius:12px; background:#000; border:1px solid #33333a; overflow:hidden; }
+  .thumbshot { position:absolute; top:0; left:0; transform-origin:top left; }
+
+  .sheet { position:absolute; inset:0; z-index:30; display:none; }
+  .sheet.on { display:block; }
+  .sheetbg { position:absolute; inset:0; background:rgba(0,0,0,.62); animation:fade .18s ease; }
+  .sheetpanel { position:absolute; left:12px; right:12px; top:auto; bottom:12px; max-height:calc(100% - 76px); background:#131315; border:1px solid #2a2a2e; border-radius:40px; corner-shape:squircle; padding:18px 18px 20px; display:flex; flex-direction:column; animation:rise .22s ease; }
+  .sheet.folder .sheetbg { background:rgba(0,0,0,.4); backdrop-filter:blur(26px); -webkit-backdrop-filter:blur(26px); }
+  .sheet.folder .sheetpanel { left:24px; right:24px; top:50%; bottom:auto; transform:translateY(-50%); display:flex; flex-direction:column; min-height:268px; max-height:calc(100% - 96px); background:rgba(255,255,255,.14); backdrop-filter:blur(40px); -webkit-backdrop-filter:blur(40px); border:1px solid rgba(255,255,255,.16); border-radius:56px; corner-shape:squircle; padding:24px 20px 16px; animation:fade .18s ease; }
+  .sheet.folder .sheethead { display:none; }
+  .folder-title { text-align:center; color:#fff; font-size:17px; font-weight:500; margin-bottom:22px; }
+  .fgrid3 { display:grid; grid-template-columns:repeat(3,1fr); row-gap:22px; align-content:start; }
+  .fgrid3 .fitem { cursor:pointer; }
+  .fgrid3 .ficon { width:54px; height:54px; border-radius:18px; corner-shape:squircle; background:#fff; box-shadow:0 4px 14px rgba(0,0,0,.18); }
+  .fgrid3 .fitem span { color:#fff; font-size:11.5px; margin-top:8px; }
+  .fgrid3 .addslot .ficon { background:rgba(255,255,255,.22); border:1px solid rgba(255,255,255,.28); box-shadow:none; color:#fff; font-size:24px; font-weight:300; }
+  .dots { display:flex; justify-content:center; gap:7px; margin-top:auto; padding-top:22px; }
+  .dots i { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.35); cursor:pointer; }
+  .dots i.on { background:#ff7a1a; }
+  .sheet.addapps .sheetpanel { left:0; right:0; top:0; bottom:0; max-height:none; border-radius:0; background:rgba(0,0,0,.42); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px); padding:22px 16px 14px; animation:fade .18s ease; }
+  .sheet.addapps .sheethead { display:none; }
+  .sheet.addapps .sheetbody { overflow-y:auto; }
+  .addtop { display:flex; align-items:center; gap:14px; margin-bottom:24px; }
+  .addtop input { flex:1; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.22); border-radius:12px; padding:12px 14px; color:#fff; font-size:14px; outline:none; }
+  .addtop input:focus { border-color:rgba(255,122,26,.6); }
+  .addtop .okbtn { border:none; background:transparent; color:#ff9a4d; font-size:15px; font-weight:600; cursor:pointer; padding:12px 16px; border-radius:12px; min-width:66px; flex:none; }
+  .agrid { display:grid; grid-template-columns:repeat(4,1fr); row-gap:24px; }
+  .acell { display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; position:relative; }
+  .acell .ficon { width:54px; height:54px; border-radius:18px; corner-shape:squircle; background:#fff; box-shadow:0 4px 14px rgba(0,0,0,.2); }
+  .acell span { color:#fff; font-size:11px; text-align:center; }
+  .acell .ck { position:absolute; top:-6px; left:calc(50% - 31px); width:20px; height:20px; border-radius:50%; background:#2eb872; color:#fff; font-size:11px; display:none; align-items:center; justify-content:center; border:2px solid rgba(0,0,0,.3); z-index:2; }
+  .acell.sel .ck { display:flex; }
+  .acell.sel .ficon { outline:2.5px solid #2eb872; outline-offset:2px; }
+  .sheethead { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .sheethead h4 { color:#fff; font-size:15px; font-weight:600; }
+  .sclose { width:28px; height:28px; border-radius:50%; border:none; background:#26262a; color:#c9c9cd; font-size:15px; cursor:pointer; }
+  .sheetbody { flex:1 1 auto; overflow-y:auto; }
+  .sheetbody::-webkit-scrollbar { width:0; }
+  @keyframes fade { from { opacity:0 } to { opacity:1 } }
+  @keyframes rise { from { opacity:0; transform:translateY(18px) } to { opacity:1; transform:none } }
+
+  .sh-title { color:#fff; font-size:22px; font-weight:300; }
+  .sh-sub { color:#8f8f93; font-size:12.5px; margin-top:6px; }
+  .hourly { display:flex; justify-content:space-between; margin:18px 0 6px; }
+  .hourly div { text-align:center; color:#c9c9cd; font-size:12px; cursor:pointer; padding:6px 4px; border-radius:12px; }
+  .hourly div:hover { background:#1e1e21; }
+  .hourly div b { display:block; color:#fff; font-size:13px; font-weight:500; margin-top:6px; }
+  .dlist { margin-top:14px; }
+  .dlist .r { display:flex; justify-content:space-between; padding:11px 2px; border-top:1px solid #232326; font-size:13px; }
+  .dlist .r span { color:#8f8f93; }
+  .dlist .r b { color:#e8e8ea; font-weight:500; }
+  .bars { display:flex; align-items:flex-end; justify-content:space-between; height:120px; margin:20px 0 4px; gap:8px; }
+  .bars div { flex:1; background:linear-gradient(180deg,#ff7a1a,#ffb27a); border-radius:6px 6px 3px 3px; cursor:pointer; position:relative; }
+  .bars div.sel { background:linear-gradient(180deg,#fff,#ffb27a); }
+  .bars div i { position:absolute; bottom:-20px; left:0; right:0; text-align:center; font-size:10.5px; color:#8f8f93; font-style:normal; }
+  .chips { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+  .chip { border:1px solid #33333a; background:#1e1e21; color:#c9c9cd; font-size:12px; padding:7px 14px; border-radius:20px; cursor:pointer; }
+  .chip.on { background:#ff7a1a; border-color:#ff7a1a; color:#1a1a1c; font-weight:600; }
+  .act { display:block; width:100%; margin-top:14px; background:#ff7a1a; border:none; color:#1a1a1c; font-size:14px; font-weight:600; padding:13px; border-radius:16px; cursor:pointer; }
+  .act.ghost { background:#26262a; color:#e8e8ea; border:1px solid #33333a; }
+  .bigdial { width:150px; height:150px; margin:8px auto 0; }
+  .sh-center { text-align:center; color:#c9c9cd; font-size:13px; margin-top:12px; }
+  .cityrow { display:flex; align-items:center; justify-content:space-between; padding:13px 12px; border-radius:14px; cursor:pointer; }
+  .cityrow:hover { background:#1e1e21; }
+  .cityrow.on { background:rgba(255,122,26,.14); }
+  .cityrow .cn { color:#fff; font-size:14px; }
+  .cityrow .ct { color:#ffb27a; font-size:15px; font-weight:500; }
+  .cityrow em { color:#8f8f93; font-style:normal; font-size:11.5px; }
+  .folderopen { display:grid; grid-template-columns:repeat(3,1fr); gap:16px 8px; margin-top:6px; }
+  .folderopen .fitem { cursor:pointer; }
+  .folderopen .fitem:hover .ficon { background:#2a2a2e; }
+  .folderopen .ficon { width:48px; height:48px; }
+  .folderopen .fitem span { font-size:11.5px; }
+  .switch { width:52px; height:30px; border-radius:16px; background:#33333a; position:relative; cursor:pointer; }
+  .switch i { position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff; transition:.18s; }
+  .switch.on { background:#ff7a1a; }
+  .switch.on i { left:25px; }
+  .sosbig { width:150px; height:150px; border-radius:50%; background:#e0382c; margin:10px auto 0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:26px; font-weight:700; cursor:pointer; border:none; box-shadow:0 8px 30px rgba(224,56,44,.4); }
+  .toast { position:absolute; left:50%; transform:translateX(-50%); bottom:132px; background:rgba(28,28,31,.96); border:1px solid #3a3a3e; color:#e8e8ea; font-size:12.5px; padding:10px 18px; border-radius:20px; opacity:0; pointer-events:none; transition:.22s; z-index:40; white-space:nowrap; }
+  .toast.on { opacity:1; transform:translateX(-50%) translateY(-6px); }
+  .dock { position:absolute; left:16px; right:16px; bottom:22px; height:92px; border-radius:44px; corner-shape:squircle; background:rgba(118,118,128,.22); backdrop-filter:blur(28px) saturate(180%); -webkit-backdrop-filter:blur(28px) saturate(180%); box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 10px 30px rgba(0,0,0,.38); display:flex; justify-content:space-around; align-items:center; padding:0 12px; }
+  .dock .dapp { width:60px; height:60px; border-radius:20px; corner-shape:squircle; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.28); }
+  .homebar { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:120px; height:4px; border-radius:2px; background:#5a5a5e; }
+
+  .panel { width:400px; }
+  .panel h2 { font-size:17px; font-weight:600; color:#fff; }
+  .panel h2 em { color:#ff7a1a; font-style:normal; }
+  .panel > p { color:#9a9a9e; font-size:13px; line-height:1.8; margin-top:10px; }
+  .btns { display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
+  .btn { border:0.5px solid #4a4a4e; background:#2c2c2f; color:#e8e8ea; font-size:13px; padding:10px 16px; border-radius:12px; cursor:pointer; }
+  .btn:hover { border-color:#ff7a1a; color:#ffb27a; }
+  .btn.primary { background:#ff7a1a; border-color:#ff7a1a; color:#1a1a1c; font-weight:600; }
+  .btn.primary:hover { background:#ff8c33; color:#1a1a1c; }
+  .tips { margin-top:22px; border-top:1px solid #33333a; padding-top:16px; }
+  .tips li { list-style:none; font-size:13px; color:#c9c9cd; line-height:1.8; margin-bottom:14px; }
+  .tips li b { color:#ffb27a; font-weight:600; margin-right:9px; }
+  .slist { margin-top:20px; }
+  .slist .row { display:flex; align-items:center; justify-content:space-between; background:#28282c; border-radius:12px; padding:10px 14px; margin-bottom:8px; font-size:13px; }
+  .slist .row span { color:#e8e8ea; }
+  .slist .row em { color:#8f8f93; font-style:normal; font-size:12px; }
+
+  .mask { position:fixed; inset:0; background:rgba(0,0,0,.62); display:none; align-items:center; justify-content:center; z-index:50; padding:24px; }
+  .mask.on { display:flex; }
+  .modal { width:580px; max-width:100%; max-height:86vh; overflow-y:auto; background:#1c1c1f; border:1px solid #33333a; border-radius:22px; padding:28px; }
+  .modal h3 { font-size:16px; font-weight:600; color:#fff; margin-bottom:6px; }
+  .modal .sub { font-size:12.5px; color:#8f8f93; margin-bottom:18px; }
+  .pick { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  .pick .opt { background:#26262a; border:1px solid #33333a; border-radius:16px; padding:12px; cursor:pointer; }
+  .pick .opt:hover { border-color:#ff7a1a; background:#2c2c2f; }
+  .pick .opt .n { color:#fff; font-size:14px; font-weight:500; display:flex; align-items:center; justify-content:space-between; }
+  .pick .opt .n i { font-style:normal; font-size:11px; color:#ffb27a; background:rgba(255,122,26,.14); border-radius:20px; padding:2px 8px; }
+  .pick .opt .d { color:#8f8f93; font-size:12px; margin-top:4px; }
+  .mfoot { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+
+  .fapps { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .fapp { background:#26262a; border:1px solid #33333a; border-radius:14px; padding:12px 8px; display:flex; flex-direction:column; align-items:center; gap:6px; position:relative; cursor:grab; }
+  .fapp .x { position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; background:#e0382c; color:#fff; font-size:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; border:2px solid #1c1c1f; }
+  .fapp span { font-size:11.5px; color:#c9c9cd; }
+  .fapp .ficon { width:40px; height:40px; }
+  .fapp.dragging { opacity:.4; }
+  .sec { color:#8f8f93; font-size:12px; margin:20px 0 10px; }
+  .cat { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .cat .c { background:#22222a; border:1px solid #33333a; border-radius:14px; padding:10px 6px; display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; }
+  .cat .c:hover { border-color:#ff7a1a; }
+  .cat .c.added { opacity:.4; }
+  .cat .c span { font-size:11px; color:#c9c9cd; text-align:center; }
+  .cat .c .ficon { width:38px; height:38px; }
+  .ficon.exitbg { background:#ff7a1a; }
+  .warn { color:#ffb27a; font-size:12px; margin-top:10px; }
+
+  /* ── 跨浏览器圆角一致性（渐进增强）───────────────────────────────
+     corner-shape 目前只有 Chromium 139+ 支持；Safari / Firefox / 旧内核
+     （例如本机 WorkBuddy 预览用的 Chromium 138）会「忽略」这条属性，圆角
+     直接回退成同半径的正圆弧 —— 比 squircle 更圆更胖，于是看起来和设计稿不同。
+     方案：能画超椭圆的浏览器保留 squircle；不能画的按 ÷1.45 收窄半径，
+     让两边观感一致（squircle@R 的视觉圆角 ≈ 正圆@R÷1.45）。 */
+  @supports not (corner-shape: squircle) {
+    .wslot, .card, .dock { border-radius:30px; }
+    .dock .dapp { border-radius:14px; }
+    .sos1 .sbtn { border-radius:9px; }
+    .wslot.half .card { border-radius:19px; }
+    .ficon { border-radius:6px; }
+    .fgrid3 .ficon, .acell .ficon, .cover { border-radius:12px; }
+    .sheetpanel { border-radius:28px; }
+    .sheet.folder .sheetpanel { border-radius:39px; }
+  }
+</style>
+</head>
+<body data-page-node-id="m7jEoeJ14Ed1HeR5hiTELb">
+
+<div class="phone" data-page-node-id="jFm8d8VA6pASnUBVFwSwqr">
+  <div class="punch" data-page-node-id="Lya3sJ7Qbn0ijPEY0Dk08E"></div>
+  <div class="glow" data-page-node-id="KPKhfGyMaIPvgDYMeCEgTS"></div>
+
+  <div class="statusbar" data-page-node-id="Y0VOD4IVTOGUB64FWGtDwd">
+    <span data-page-node-id="LRi1IDJLqJrHmTkYZSzCeZ">18:21</span>
+    <div class="sb-icons" data-page-node-id="NDs3Pk3SEFALF2hOi5DV4H">
+      <svg width="14" height="12" viewBox="0 0 14 12" data-page-node-id="fGDinXAGValGRcQpINT7aA"><rect x="0" y="7" width="2.5" height="5" rx="1" fill="#fff" data-page-node-id="8nzZPekMiybDpOa8BWQcRA"/><rect x="4" y="4.5" width="2.5" height="7.5" rx="1" fill="#fff" data-page-node-id="qXGExWMkLa7gRvi4s16mrz"/><rect x="8" y="2" width="2.5" height="10" rx="1" fill="#fff" data-page-node-id="i3z5tEnBWsVfZ9o5s0Zc88"/><rect x="12" y="0" width="2" height="12" rx="1" fill="#5a5a5e" data-page-node-id="EzHwabPw7BdXZARffANT1j"/></svg>
+      <svg width="14" height="12" viewBox="0 0 14 12" data-page-node-id="8n9S759odMzxdyYSqaiwQt"><path d="M7 10.5 L1.5 5 A7.5 7.5 0 0 1 12.5 5 Z" fill="#fff" data-page-node-id="YJY9m3foR6Xfop0WajCwTX"/></svg>
+      <svg width="15" height="12" viewBox="0 0 15 12" data-page-node-id="iMa7avPlkOdjjwimnZGaz4"><rect x="0" y="1" width="13" height="10" rx="2.5" fill="none" stroke="#fff" stroke-width="1.4" data-page-node-id="Wt4tPeyJSxjBoX7kvvowrp"/><path d="M4 4 L8 6 L4 8 Z" fill="#fff" data-page-node-id="bp98C2QpP77l3gimzhiwFb"/></svg>
+      <div class="battery" data-page-node-id="NJXzIzlFLzArF7mtUxiRGr"><i data-page-node-id="lNb77TKmBIoBK41q1j2fLJ"></i></div>
+      <span style="font-size:11px;background:#ff7a1a;border-radius:9px;padding:1px 6px;font-weight:700;" data-page-node-id="jmNXcuLX8YcuZ2OCYhvKmV">79</span>
+    </div>
+  </div>
+
+  <div class="modrow">
+    <div class="modechip"><i></i><span>户外模式已开启</span></div>
+    <div class="mright">可继续使用 <b>07:35</b></div>
+  </div>
+
+  <div class="widgetarea" data-page-node-id="LA1JEDmH4xGu1kyXWBt96U"><div class="wgrid" id="wgrid" data-page-node-id="VCFuin0BIL41k0mCRhHRpG"></div></div>
+
+  <div class="sheet" id="sheet"></div>
+  <div class="toast" id="toast"></div>
+
+  <div class="dock">
+    <!-- 电话 -->
+    <div class="dapp" style="background:linear-gradient(180deg,#77e480,#25b64a);"><svg width="32" height="32" viewBox="0 0 26 26"><path d="M7.5 4.5 C8.5 4.5 9.5 6 9.8 7.5 C10 8.5 9.5 9.3 8.8 9.9 C9.6 11.8 11.5 13.8 13.4 14.7 C14 14 14.8 13.5 15.8 13.7 C17.3 14 19 15 19 16.2 C19 17.8 17.6 19 16 19 C10.5 19 5.5 14 5.5 8.5 C5.5 6.5 6 4.5 7.5 4.5 Z" fill="#fff"/></svg></div>
+    <!-- Safari -->
+    <div class="dapp" style="background:#fff;"><svg width="38" height="38" viewBox="0 0 34 34"><defs><radialGradient id="sfG" cx="50%" cy="30%" r="76%"><stop offset="0%" stop-color="#5ec8ff"/><stop offset="58%" stop-color="#0a84ff"/><stop offset="100%" stop-color="#0a5bd0"/></radialGradient></defs><circle cx="17" cy="17" r="15" fill="url(#sfG)"/><circle cx="17" cy="17" r="12.1" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="1.15"/><path d="M24.8 9.2 L19.69 19.69 L14.31 14.31 Z" fill="#ff3b30"/><path d="M9.2 24.8 L14.31 14.31 L19.69 19.69 Z" fill="#fff"/></svg></div>
+    <!-- 信息 -->
+    <div class="dapp" style="background:linear-gradient(180deg,#6ff07a,#12c74a);"><svg width="32" height="32" viewBox="0 0 34 34"><path d="M17 7.8c-5.9 0-10.6 3.7-10.6 8.3 0 2.6 1.5 5 3.8 6.5-.1 1.2-.7 2.8-1.7 4.1 2.1-.4 4-1.3 5.2-2.2 1.1.2 2.2.3 3.3.3 5.9 0 10.6-3.7 10.6-8.3S22.9 7.8 17 7.8z" fill="#fff"/></svg></div>
+    <!-- 相机 -->
+    <div class="dapp" style="background:linear-gradient(180deg,#f4f4f6,#c9c9ce);"><svg width="33" height="33" viewBox="0 0 34 34"><rect x="5" y="12.5" width="24" height="15" rx="4.4" fill="#3a3a3c"/><path d="M12.2 12.5 l1.9-3 h5.8 l1.9 3 Z" fill="#3a3a3c"/><circle cx="17" cy="20" r="5.6" fill="#1c1c1e"/><circle cx="17" cy="20" r="3.7" fill="#48484a"/><circle cx="15.3" cy="18.3" r="1.15" fill="#c7c7cc" opacity=".85"/><circle cx="24.7" cy="15.9" r="1.25" fill="#ffd60a"/></svg></div>
+  </div>
+  <div class="homebar" data-page-node-id="MvTe5lXW1ZSzsjwDhz4fxP"></div>
+</div>
+
+<div class="panel" data-page-node-id="V3lwhcBXE2PUo9bzquFUyM">
+  <h2 data-page-node-id="IUhGF3WEgxRe1KotSqxuwK">户外模式 · <em data-page-node-id="tEt5oIfc93isAkiLi8Ge9i">可交互原型</em></h2>
+  <p data-page-node-id="J5XDA7PVLewKBlnW9LMiEr">长按桌面小部件即可拖动换位、更换类型与删除；文件夹内的应用可自由增删排序。所有改动自动保存在本地浏览器，刷新后保留。</p>
+  <div class="btns" data-page-node-id="cnyGvElijeAxOQXR2GvYcr">
+    <button class="btn primary" id="btnAdd" data-page-node-id="65AxVEzbSzcIDos5dueUnF">＋ 添加小部件</button>
+    <button class="btn" id="btnFolder" data-page-node-id="43Oe7w9aSojxHFsGLMaI6H">管理文件夹应用</button>
+    <button class="btn" id="btnReset" data-page-node-id="gILZC3wQ4KUjrEvgk3TUg8">恢复默认布局</button>
+  </div>
+  <ul class="tips" data-page-node-id="KA948lxqXLShmLXJWEcebe">
+    <li data-page-node-id="Duii7DYecvW5lJIa1BuwTc"><b data-page-node-id="QVhIH25NDYoMB9IJ6JPfvA">换位</b>：长按卡片 → 按住左上角的手柄（或直接拖动卡片）拖到目标位置松手</li>
+    <li data-page-node-id="tIAFmDDqr0UrpwB9Qrdgdt"><b data-page-node-id="w0U7zuPXcMqe5MIGR36Mvb">更换</b>：长按卡片 → 右上角「更换」按钮，从部件库中选一个替换</li>
+    <li data-page-node-id="bDCAmQ6BSpxBFjdrn4gC7k"><b data-page-node-id="CFomliSz0MAuofJLVMWM3X">删除</b>：长按卡片 → 右上角「删除」按钮</li>
+    <li data-page-node-id="hAmGwX4AGFkAaipqdlwS5b"><b data-page-node-id="E9YAhGGoIkWO54FrrZDEO6">文件夹</b>：长按文件夹卡 → 中间「管理」按钮进入应用增删；进入添加页：点选应用（绿色角标），顶部可改文件夹名，确定保存</li>
+  <li><b>点击</b>：点击卡片本体进入详情面板（天气逐时、步数周图、导航、指南针解锁、音乐播放等）；文件夹点开为 3×3 面板，点应用即提示打开</li></ul>
+  <div class="slist" id="slist" data-page-node-id="ZoiV0pW8iW7IywKFMu3YMT"></div>
+</div>
+
+<div class="mask" id="mask" data-page-node-id="R82j5wbEgA6HuDk3n24cwc"><div class="modal" id="modal" data-page-node-id="lhMmLOu1Fy9NptDZYH6cq3"></div></div>
+
+<script>
+const KEY = 'outdoor-mode-state-v1';
+const MAX_APPS = 18;
+
+const ICON = {
+  maps: '<svg width="19" height="19" viewBox="0 0 30 30"><path d="M15 3 L18 9 L15 8 L12 9 Z" fill="#34a853"/><path d="M26 11 L20.5 15.5 L21 12.5 L19 10.5 Z" fill="#fbbc05"/><path d="M22 26 L17.5 21.5 L20 20.5 L21 17.5 Z" fill="#34a853"/><path d="M8 26 L10.5 20 L12.5 22.5 L15.5 22 Z" fill="#fbbc05"/><path d="M3 12 L9.5 13.5 L7.5 15.5 L8.5 18.5 Z" fill="#fbbc05"/><circle cx="15" cy="15" r="4.5" fill="#4285f4" stroke="#fff" stroke-width="1.6"/></svg>',
+  ytmusic: '<svg width="19" height="19" viewBox="0 0 30 30"><rect x="2" y="2" width="26" height="26" rx="6" fill="#ff0000"/><rect x="11" y="10" width="4" height="10" rx="1.5" fill="#fff"/><rect x="16.5" y="10" width="4" height="10" rx="1.5" fill="#fff"/></svg>',
+  exit: '<svg width="18" height="18" viewBox="0 0 28 28"><rect x="4" y="4" width="13" height="20" rx="2.5" fill="none" stroke="#fff" stroke-width="2.6"/><path d="M12 14 H24 M20 10 L24 14 L20 18" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  compass: '<svg width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#3d3d41" stroke-width="1.6"/><path d="M12 5 L15.5 12 L12 10.5 L8.5 12 Z" fill="#ff7a1a"/><path d="M12 19 L8.5 12 L12 13.5 L15.5 12 Z" fill="#5a5a5e"/></svg>',
+  sos: '<svg width="18" height="18" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4.5" fill="#e0382c"/><text x="12" y="15.6" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">SOS</text></svg>',
+  torch: '<svg width="18" height="18" viewBox="0 0 24 24"><rect x="8" y="2.5" width="8" height="3" rx="1.2" fill="#ffb733"/><path d="M9 6 H15 L15.5 14 H8.5 Z" fill="#ffb733"/><rect x="7" y="14.5" width="10" height="7" rx="1.6" fill="#6f6f73"/></svg>',
+  altimeter: '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M2 18 L9 7 L14 13 L18 8 L22 18 Z" fill="#5a5a5e"/><path d="M9 7 L13.4 13.8 L14 13 L18 8 L12.6 6 Z" fill="#ffb27a"/></svg>',
+  steps: '<svg width="18" height="18" viewBox="0 0 24 24"><circle cx="9" cy="4.2" r="2.2" fill="#ff7a1a"/><path d="M8 7 L5 12 L7 21 M8 7 L11.5 8.5 L14.5 14 M8 9 L4.5 10.5 L3 15 M8.6 14 L10.5 21" stroke="#ff7a1a" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  weather: '<svg width="18" height="18" viewBox="0 0 24 24"><circle cx="9.5" cy="9.5" r="4.5" fill="#ffb733"/><path d="M7 18 H19 A3.5 3.5 0 0 0 15.5 14.5 H8.5 A3.5 3.5 0 0 0 7 18 Z" fill="#9aa0a6"/></svg>',
+  radio: '<svg width="18" height="18" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="14" rx="2.5" fill="#6f6f73"/><rect x="9.5" y="9.5" width="5" height="4" rx="1" fill="#ffb27a"/><circle cx="12" cy="17" r="1.6" fill="#ff7a1a"/><path d="M12 7 V3" stroke="#6f6f73" stroke-width="2" stroke-linecap="round"/></svg>',
+  recorder: '<svg width="18" height="18" viewBox="0 0 24 24"><rect x="9" y="2.5" width="6" height="11" rx="3" fill="#9aa0a6"/><path d="M6 11 A6 6 0 0 0 18 11" fill="none" stroke="#9aa0a6" stroke-width="2" stroke-linecap="round"/><path d="M12 17 V21" stroke="#9aa0a6" stroke-width="2" stroke-linecap="round"/></svg>',
+  camera: '<svg width="18" height="18" viewBox="0 0 24 24"><rect x="2.5" y="6.5" width="14" height="11" rx="2.5" fill="#9aa0a6"/><path d="M17 10.5 L22 8 L22 16 L17 13.5 Z" fill="#9aa0a6"/><circle cx="9.5" cy="12" r="3" fill="#161618"/></svg>',
+  timer: '<svg width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" fill="none" stroke="#9aa0a6" stroke-width="2"/><path d="M12 13 V8" stroke="#ff7a1a" stroke-width="2" stroke-linecap="round"/><path d="M9 2.5 H15" stroke="#9aa0a6" stroke-width="2" stroke-linecap="round"/></svg>',
+  settings: '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M4 8 H16 M20 8 H20 M4 16 H10 M14 16 H20" stroke="#9aa0a6" stroke-width="2" stroke-linecap="round"/><circle cx="18" cy="8" r="2.4" fill="#ff7a1a"/><circle cx="12" cy="16" r="2.4" fill="#ff7a1a"/></svg>',
+  night: '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M20 14 A8.5 8.5 0 0 1 10 4 A8.5 8.5 0 1 0 20 14 Z" fill="#6f7ba8"/></svg>',
+  notes: '<svg width="18" height="18" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2.5" fill="#9aa0a6"/><path d="M8 8 H16 M8 12 H16 M8 16 H13" stroke="#161618" stroke-width="1.6" stroke-linecap="round"/></svg>'
+};
+
+const APPS = {
+  maps:'地图', ytmusic:'YT Music', exit:'退出模式', compass:'指南针', sos:'SOS', torch:'手电筒',
+  altimeter:'海拔表', steps:'计步', weather:'天气', radio:'对讲机', recorder:'录音机', camera:'相机',
+  timer:'计时器', settings:'设置', night:'夜视仪', notes:'记事本'
+};
+
+const DEFS = {
+  weather:   { name:'时钟 + 天气', size:'wide', desc:'时间 · 温度 · 风 · 日出日落' },
+  music:     { name:'音乐播放器', size:'wide', desc:'当前播放 · 进度控制' },
+  walk:      { name:'今日步行', size:'square', desc:'步数 · 距离 · 卡路里' },
+  walkS:     { name:'今日步行', size:'half', desc:'紧凑 2×1 · 步数与目标进度' },
+  map:       { name:'Google 地图', size:'square', desc:'定位 · 一键导航' },
+  compass:   { name:'指南针', size:'square', desc:'方位 · 海拔 · 气压' },
+  folder:    { name:'户外工具文件夹', size:'square', desc:'自定义应用集合' },
+  clock:     { name:'世界时钟', size:'square', desc:'其他城市时间' },
+  altimeter: { name:'高度气压计', size:'square', desc:'海拔趋势 · 气压' },
+  battery:   { name:'电量', size:'square', desc:'剩余电量 · 续航预估' },
+  sos:       { name:'SOS 求救', size:'square', desc:'长按一键求救' },
+  sosS:      { name:'SOS 求救', size:'half', desc:'紧凑 2×1 · 长按一键求救' }
+};
+
+const DEFAULT = {
+  widgets: ['weather','walk','map','compass','folder'],
+  apps: ['maps','ytmusic','exit','compass','sos','torch','altimeter','steps','weather'],
+  ui: { compassLocked:true, playing:true, progress:42, powerSave:false, altiView:'alt', city:0 },
+  folderName: '户外工具'
+};
+
+let state = load();
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s && Array.isArray(s.widgets)) {
+        if (!s.ui) s.ui = JSON.parse(JSON.stringify(DEFAULT.ui));
+        if (!s.folderName) s.folderName = '户外工具';
+        return s;
+      }
+    }
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(DEFAULT));
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+function renderWeather() {
+  return `<div class="card weather">
+    <div class="wtime"><div class="t">18:21</div><div class="d">9月9日 周三</div></div>
+    <div class="wdiv"></div>
+    <div class="wright">
+      <div class="wtop">
+        <svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="7.5" fill="#ffb733"/><g stroke="#ffb733" stroke-width="2.4" stroke-linecap="round"><line x1="17" y1="2.5" x2="17" y2="7"/><line x1="17" y1="27" x2="17" y2="31.5"/><line x1="2.5" y1="17" x2="7" y2="17"/><line x1="27" y1="17" x2="31.5" y2="17"/><line x1="6.8" y1="6.8" x2="10" y2="10"/><line x1="24" y1="24" x2="27.2" y2="27.2"/><line x1="6.8" y1="27.2" x2="10" y2="24"/><line x1="24" y1="10" x2="27.2" y2="6.8"/></g></svg>
+        <b class="wtemp">32°</b>
+        <div class="cond">晴 · 体感 35°</div>
+      </div>
+      <div class="tags"><span class="tag uv">UV 9 强</span><span class="tag">湿度 45%</span><span class="tag">西南风2级</span></div>
+      <div class="sunrow">
+        <div class="sun"><svg width="15" height="14" viewBox="0 0 15 14"><path d="M2.5 9.8 H12.5" stroke="#ffb733" stroke-width="1.4" stroke-linecap="round"/><path d="M4.8 9.8 A2.7 2.7 0 0 1 10.2 9.8" fill="none" stroke="#ffb733" stroke-width="1.4" stroke-linecap="round"/><path d="M7.5 1.3 V6 M5.6 3 L7.5 1.2 L9.4 3" fill="none" stroke="#ffb733" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>日出 <b>05:42</b></div>
+        <div class="sun"><svg width="15" height="14" viewBox="0 0 15 14"><path d="M2.5 4.6 H12.5" stroke="#ff7a1a" stroke-width="1.4" stroke-linecap="round"/><path d="M4.8 4.6 A2.7 2.7 0 0 0 10.2 4.6" fill="none" stroke="#ff7a1a" stroke-width="1.4" stroke-linecap="round"/><path d="M7.5 7.4 V12.4 M5.6 10.6 L7.5 12.5 L9.4 10.6" fill="none" stroke="#ff7a1a" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>日落 <b>19:08</b></div>
+      </div>
+      <div class="daylight"><div class="dnow">距日落 47 分钟</div><div class="dbar"><i></i><em></em></div></div>
+    </div>
+  </div>`;
+}
+
+function renderWalk() {
+  return `<div class="card walk">
+    <div class="cardtitle"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7.4" cy="2.2" r="1.8" fill="#ff7a1a"/><path d="M6.6 4.5 L4.8 7.5 L6 12.5 M6.6 4.5 L9 5.5 L10.8 8.5 M6.6 4.5 L4 6 L2.8 9 M7 8 L8.5 12.5" stroke="#ff7a1a" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>今日步行</div>
+    <div class="steps">8,432<small>步</small></div>
+    <div class="wrow"><span>距离</span><b>5.86 公里</b></div>
+    <div class="wrow"><span>消耗</span><b>326 千卡</b></div>
+    <div class="goalbar"><div class="lbl"><span>目标 10,000 步</span><b>84%</b></div><div class="bar"><i></i></div></div>
+  </div>`;
+}
+function renderMap() {
+  return `<div class="card map">
+    <svg class="bgmap" viewBox="0 0 200 220" preserveAspectRatio="xMidYMid slice">
+      <rect width="200" height="220" fill="#e8e6e1"/>
+      <path d="M0 36 L200 12 L200 27 L0 52 Z" fill="#f6c96b"/>
+      <path d="M-10 118 L210 95 L210 108 L-10 132 Z" fill="#fff"/>
+      <path d="M-10 172 L210 150 L210 160 L-10 184 Z" fill="#fff"/>
+      <path d="M60 -10 L48 230 L60 230 L72 -10 Z" fill="#fff"/>
+      <path d="M130 -10 L122 230 L132 230 L142 -10 Z" fill="#f6c96b"/>
+      <path d="M150 28 C180 42 190 66 185 90 C200 85 202 56 195 36 Z" fill="#b8dba4"/>
+      <circle cx="100" cy="107" r="9" fill="#3b82f6" stroke="#fff" stroke-width="3"/>
+      <path d="M100 85 C90 85 84 93 84 101 C84 111 100 123 100 123 C100 123 116 111 116 101 C116 93 110 85 100 85 Z" fill="#ea4335"/>
+      <circle cx="100" cy="100" r="4.5" fill="#fff"/>
+    </svg>
+    <div class="locate"><i></i>GPS 已定位 · 误差 5m</div>
+    <div class="maplabel">Google 地图 · 点击导航</div>
+    <div class="zoom"><svg width="18" height="18" viewBox="0 0 18 18"><circle cx="7.5" cy="7.5" r="5" fill="none" stroke="#fff" stroke-width="2"/><line x1="11.5" y1="11.5" x2="16" y2="16" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></div>
+  </div>`;
+}
+function renderCompass() {
+  let ticks = '';
+  for (let a = 45; a < 360; a += 45) ticks += `<span class="tick" style="transform:translateX(-50%) rotate(${a}deg);"></span>`;
+  return `<div class="card compass">
+    <div class="dial"><span class="n">N</span>${ticks}<div class="needle"></div><div class="center"></div></div>
+    <div class="dir">东北 NE · 45°</div>
+    <div class="alt">海拔 1,280 米 · 867 hPa</div>
+    <div class="lockstate"><svg width="11" height="12" viewBox="0 0 11 12"><rect x="0.5" y="5" width="10" height="7" rx="2" fill="#ff9a4d"/><path d="M3 5 V3.5 A2.5 2.5 0 0 1 8 3.5 V5" fill="none" stroke="#ff9a4d" stroke-width="1.6"/></svg><span>${state.ui.compassLocked ? '已锁定' : '未锁定'}</span></div>
+    <div class="hint">${state.ui.compassLocked ? '双击解除锁定' : '点击进入校准'}</div>
+  </div>`;
+}
+function renderFolder() {
+  const items = state.apps.length
+    ? state.apps.slice(0, 9).map(id => `<div class="fitem ${id==='exit'?'exit':''}"><div class="ficon">${ICON[id]||''}</div><span>${APPS[id]||id}</span></div>`).join('')
+    : '<div class="fempty">文件夹为空<br>点「管理」添加应用</div>';
+  return `<div class="card folder">
+    <div class="ftitle"><svg width="13" height="12" viewBox="0 0 14 12"><path d="M1 2.5 A1.5 1.5 0 0 1 2.5 1 H5.2 L6.6 3 H11.5 A1.5 1.5 0 0 1 13 4.5 V9.5 A1.5 1.5 0 0 1 11.5 11 H2.5 A1.5 1.5 0 0 1 1 9.5 Z" fill="#ff7a1a"/></svg>${state.folderName || '户外工具'}<span class="fcount">${state.apps.length}</span></div>
+    <div class="fline"></div>
+    <div class="fgrid">${items}</div>
+  </div>`;
+}
+function renderClock() {
+  return `<div class="card"><div class="clockw"><div class="t">19:21</div><div class="d">东京 · UTC+9</div></div></div>`;
+}
+function renderMusic() {
+  return `<div class="card music">
+    <div class="cover"><svg width="40" height="40" viewBox="0 0 24 24"><path d="M9 18.5 A2.5 2.5 0 1 1 6.5 16 A2.5 2.5 0 0 1 9 18.5 Z M20 16.5 A2.5 2.5 0 1 1 17.5 14 A2.5 2.5 0 0 1 20 16.5 Z M9 16 V5 L20 3 V14" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+    <div class="minfo">
+      <div class="cardtitle" style="margin-bottom:8px;">YT Music · 正在播放</div>
+      <div class="tt">Cornfield Chase</div>
+      <div class="ar">Hans Zimmer · 星际穿越</div>
+      <div class="mbar"><i></i></div>
+      <div class="mtime"><span>01:48</span><span>04:22</span></div>
+      <div class="mctl">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path d="M18 5 L9 12 L18 19 Z" fill="#c9c9cd"/><rect x="6" y="5" width="2" height="14" rx="1" fill="#c9c9cd"/></svg>
+        <svg width="28" height="28" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#ff7a1a"/><path d="M9.5 8 L16 12 L9.5 16 Z" fill="#fff"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24"><path d="M6 5 L15 12 L6 19 Z" fill="#c9c9cd"/><rect x="16" y="5" width="2" height="14" rx="1" fill="#c9c9cd"/></svg>
+      </div>
+    </div>
+  </div>`;
+}
+function renderAltimeter() {
+  return `<div class="card alti">
+    <div class="cardtitle">高度气压计</div>
+    <div class="v">1,280<small>米</small></div>
+    <div class="sub">867 hPa · 较 1 小时前 +32 米</div>
+    <svg width="100%" height="62" viewBox="0 0 160 62" style="margin-top:12px;">
+      <polyline points="0,50 20,46 40,42 60,44 80,34 100,28 120,22 140,16 160,10" fill="none" stroke="#ff7a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="0,54 20,52 40,50 60,51 80,48 100,44 120,42 140,39 160,36" fill="none" stroke="#4a4a4e" stroke-width="1.6" stroke-dasharray="3 3"/>
+    </svg>
+  </div>`;
+}
+function renderBattery() {
+  return `<div class="card"><div class="batw">
+    <div class="ring"><div><b>79%</b><span>充电中</span></div></div>
+    <div class="left">预计可用 14 小时 20 分</div>
+  </div></div>`;
+}
+function renderSos() {
+  return `<div class="card"><div class="sosw">
+    <div class="sbtn">SOS</div>
+    <p>长按 3 秒发送求救与定位</p>
+  </div></div>`;
+}
+/* 2×1 紧凑版：今日步行 —— 步数 + 目标进度条 */
+function renderWalkS() {
+  return `<div class="card">
+    <div class="wk1">
+      <div class="top">
+        <div class="lbl"><svg width="11" height="11" viewBox="0 0 14 14"><circle cx="7.4" cy="2.2" r="1.8" fill="#ff7a1a"/><path d="M6.6 4.5 L4.8 7.5 L6 12.5 M6.6 4.5 L9 5.5 L10.8 8.5 M6.6 4.5 L4 6 L2.8 9 M7 8 L8.5 12.5" stroke="#ff7a1a" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>今日步行</div>
+        <div class="pct">84%</div>
+      </div>
+      <div class="num">8,432<small>步</small></div>
+      <div class="bar"><i></i></div>
+    </div>
+  </div>`;
+}
+/* 2×1 紧凑版：SOS —— 圆角求救按钮 + 说明 */
+function renderSosS() {
+  return `<div class="card">
+    <div class="sos1">
+      <div class="sbtn">SOS</div>
+      <div class="txt"><b>SOS 求救</b><span>长按 3 秒发送定位</span></div>
+    </div>
+  </div>`;
+}
+
+const RENDER = { weather:renderWeather, walk:renderWalk, map:renderMap, compass:renderCompass, folder:renderFolder, clock:renderClock, music:renderMusic, altimeter:renderAltimeter, battery:renderBattery, sos:renderSos, walkS:renderWalkS, sosS:renderSosS };
+
+const HANDLE = '<svg width="12" height="12" viewBox="0 0 12 12"><circle cx="4" cy="2.5" r="1.2" fill="#fff"/><circle cx="8" cy="2.5" r="1.2" fill="#fff"/><circle cx="4" cy="6" r="1.2" fill="#fff"/><circle cx="8" cy="6" r="1.2" fill="#fff"/><circle cx="4" cy="9.5" r="1.2" fill="#fff"/><circle cx="8" cy="9.5" r="1.2" fill="#fff"/></svg>';
+const I_SWAP = '<svg width="13" height="13" viewBox="0 0 24 24"><path d="M4 8 H17 L14 5 M20 16 H7 L10 19" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const I_TRASH = '<svg width="13" height="13" viewBox="0 0 24 24"><path d="M4 7 H20 M9 7 V4 H15 V7 M6 7 L7 20 H17 L18 7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const I_GRID = '<svg width="13" height="13" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.6" fill="none" stroke="#fff" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1.6" fill="none" stroke="#fff" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1.6" fill="none" stroke="#fff" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1.6" fill="none" stroke="#fff" stroke-width="2"/></svg>';
+
+const grid = document.getElementById('wgrid');
+const mask = document.getElementById('mask');
+const modal = document.getElementById('modal');
+
+function render() {
+  if (!state.widgets.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1 / -1;">桌面为空，点右侧「添加小部件」</div>';
+  } else {
+    grid.innerHTML = state.widgets.map((type, i) => {
+      const def = DEFS[type];
+      const wide = def.size === 'wide';
+      const half = def.size === 'half';
+      const manage = type === 'folder' ? `<button class="ibtn" data-act="manage" data-i="${i}" title="管理应用">${I_GRID}</button>` : '';
+      return `<div class="wslot ${wide ? 'wide' : ''}${half ? ' half' : ''}" draggable="true" data-i="${i}">
+        <div class="handle" title="拖动换位">${HANDLE}</div>
+        <div class="ctrl">
+          ${manage}
+          <button class="ibtn" data-act="swap" data-i="${i}" title="更换小部件">${I_SWAP}</button>
+          <button class="ibtn" data-act="del" data-i="${i}" title="删除">${I_TRASH}</button>
+        </div>
+        ${RENDER[type]()}
+      </div>`;
+    }).join('');
+  }
+  if (editMode) {                     // 重渲染（拖拽/删除后）保持编辑态
+    if (state.widgets.length) grid.querySelectorAll('.wslot').forEach(s => s.classList.add('editing'));
+    else editMode = false;
+  }
+  renderList();
+  save();
+}
+
+function renderList() {
+  document.getElementById('slist').innerHTML =
+    `<div class="row"><span>当前布局（${state.widgets.length} 个小部件）</span><em>${state.widgets.map(t => DEFS[t].name).join(' · ')}</em></div>
+     <div class="row"><span>文件夹应用（${state.apps.length}/${MAX_APPS}）</span><em>${state.apps.map(a => APPS[a]).join(' · ') || '空'}</em></div>`;
+}
+
+/* ── 长按小部件 → 进入编辑态，才显示「拖动 / 更换 / 删除」控件 ──
+   之前是鼠标悬停(hover)就出现，改为长按 480ms 触发；点卡片以外任何地方退出。 */
+let editMode = false, pressTimer = null, pressX = 0, pressY = 0, suppressClick = false;
+function enterEdit() {
+  if (editMode) return;
+  editMode = true;
+  suppressClick = true;                        // 长按松手后不再触发「打开详情」
+  document.querySelectorAll('.wslot').forEach(s => s.classList.add('editing'));
+}
+function exitEdit() {
+  if (!editMode) return;
+  editMode = false;
+  document.querySelectorAll('.wslot').forEach(s => s.classList.remove('editing'));
+}
+function cancelPress() { clearTimeout(pressTimer); pressTimer = null; }
+
+grid.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;                  // 只响应左键 / 单指
+  if (e.target.closest('.ibtn')) return;       // 控件按钮上不长按
+  if (!e.target.closest('.wslot')) return;
+  cancelPress();
+  pressX = e.clientX; pressY = e.clientY;
+  pressTimer = setTimeout(enterEdit, 480);     // 480ms = 长按阈值
+});
+window.addEventListener('pointermove', e => {
+  if (!pressTimer) return;
+  if (Math.abs(e.clientX - pressX) > 8 || Math.abs(e.clientY - pressY) > 8) cancelPress();
+});
+window.addEventListener('pointerup', cancelPress);
+window.addEventListener('pointercancel', cancelPress);
+grid.addEventListener('contextmenu', e => { if (e.target.closest('.wslot')) e.preventDefault(); });
+document.addEventListener('click', e => { if (editMode && !e.target.closest('.wslot')) exitEdit(); });
+
+grid.addEventListener('click', e => {
+  if (suppressClick) { suppressClick = false; return; }   // 长按后的那次 click 丢弃
+  const btn = e.target.closest('.ibtn');
+  if (!btn) {
+    const slot = e.target.closest('.wslot');
+    if (!slot) return;
+    if (editMode) { exitEdit(); return; }                 // 编辑态下点卡片 = 退出编辑
+    openDetail(+slot.dataset.i);
+    return;
+  }
+  const i = +btn.dataset.i;
+  if (btn.dataset.act === 'swap') openPicker(i);
+  if (btn.dataset.act === 'del') { state.widgets.splice(i, 1); render(); }
+  if (btn.dataset.act === 'manage') openFolder();
+  exitEdit();
+});
+
+let dragged = null;
+grid.addEventListener('dragstart', e => {
+  const slot = e.target.closest('.wslot');
+  if (!slot) return;
+  dragged = slot;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', '');
+  requestAnimationFrame(() => slot.classList.add('dragging'));
+});
+grid.addEventListener('dragover', e => {
+  if (!dragged) return;
+  e.preventDefault();
+  const target = e.target.closest('.wslot');
+  if (!target || target === dragged) return;
+  const r = target.getBoundingClientRect();
+  const sameRow = Math.abs(e.clientY - (r.top + r.height / 2)) < r.height / 2;
+  const after = sameRow ? e.clientX > r.left + r.width / 2 : e.clientY > r.top + r.height / 2;
+  grid.insertBefore(dragged, after ? target.nextSibling : target);
+});
+grid.addEventListener('drop', e => e.preventDefault());
+grid.addEventListener('dragend', () => {
+  if (!dragged) return;
+  dragged.classList.remove('dragging');
+  dragged = null;
+  const order = [...grid.querySelectorAll('.wslot')].map(el => +el.dataset.i);
+  state.widgets = order.map(i => state.widgets[i]);
+  render();
+});
+
+/* 桌面上的真实尺寸：通栏 390×195、单列 186×195、2×1 半高 186×74.5 */
+const CARD_SIZE = { wide:{w:390,h:195}, square:{w:186,h:195}, half:{w:186,h:74.5} };
+const SIZE_LABEL = { wide:'4×2', square:'2×2', half:'2×1' };
+
+function openPicker(index) {
+  const opts = Object.keys(DEFS).map(k => {
+    const d = DEFS[k], s = CARD_SIZE[d.size];
+    // 直接拿真实小部件的 DOM 等比缩小做缩略图 —— 所见即所得，新增部件自动有图
+    return `<div class="opt" data-type="${k}">
+      <div class="thumb"><div class="thumbshot" style="width:${s.w}px;height:${s.h}px;">${RENDER[k]()}</div></div>
+      <div class="n">${d.name}<i>${SIZE_LABEL[d.size]}</i></div>
+      <div class="d">${d.desc}</div>
+    </div>`;
+  }).join('');
+  modal.innerHTML = `<h3>${index === null ? '添加小部件' : '更换小部件'}</h3>
+    <div class="sub">${index === null ? '选择一个小部件添加到桌面末尾' : '把当前位置的小部件替换为'}</div>
+    <div class="pick">${opts}</div>
+    <div class="mfoot"><button class="btn" data-close>取消</button></div>`;
+  openModal();                                    // 先显示，否则量不到宽度
+  // 所有预览共用一个缩放比（= 能装下最大卡片的值），这样缩略图的相对大小是真实的：
+  // 通栏最宽、2×2 最高，二者决定 k；2×1 自然显示为「矮一截」。
+  const box0 = modal.querySelector('.thumb');
+  const k = Math.min(box0.clientWidth / 390, box0.clientHeight / 195);
+  modal.querySelectorAll('.opt').forEach(el => {
+    const box = el.querySelector('.thumb'), shot = el.querySelector('.thumbshot');
+    const s = CARD_SIZE[DEFS[el.dataset.type].size];
+    shot.style.transform = `scale(${k})`;
+    shot.style.left = ((box.clientWidth  - s.w * k) / 2) + 'px';
+    shot.style.top  = ((box.clientHeight - s.h * k) / 2) + 'px';
+  });
+  modal.querySelectorAll('.opt').forEach(el => el.addEventListener('click', () => {
+    const t = el.dataset.type;
+    if (index === null) state.widgets.push(t); else state.widgets[index] = t;
+    closeModal(); render();
+  }));
+}
+
+function openFolder() {
+  closeSheet();
+  const EX = '<svg width="28" height="28" viewBox="0 0 28 28"><rect x="4" y="4" width="13" height="20" rx="2.5" fill="none" stroke="#ff7a1a" stroke-width="2.6"/><path d="M12 14 H24 M20 10 L24 14 L20 18" fill="none" stroke="#ff7a1a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const sel = new Set(state.apps);
+  const el = document.getElementById('sheet');
+  el.className = 'sheet on addapps';
+  const cells = Object.keys(APPS).map(id =>
+    '<div class="acell ' + (sel.has(id) ? 'sel' : '') + '" data-app="' + id + '">' +
+    '<span class="ck">✓</span><div class="ficon">' + (id === 'exit' ? EX : (ICON[id] || '')) + '</div>' +
+    '<span>' + APPS[id] + '</span></div>').join('');
+  el.innerHTML = '<div class="sheetbg"></div><div class="sheetpanel">' +
+    '<div class="addtop"><input id="fname" value="' + (state.folderName || '户外工具') + '" maxlength="10"><button class="okbtn" id="fok">确定</button></div>' +
+    '<div class="sheetbody"><div class="agrid">' + cells + '</div></div></div>';
+  el.querySelector('.sheetbg').onclick = closeSheet;
+
+  el.querySelectorAll('.acell').forEach(cell => cell.onclick = () => {
+    const id = cell.dataset.app;
+    if (sel.has(id)) { sel.delete(id); state.apps = state.apps.filter(x => x !== id); cell.classList.remove('sel'); }
+    else {
+      if (state.apps.length >= MAX_APPS) { toast('最多 ' + MAX_APPS + ' 个应用（每页 9 个）'); return; }
+      sel.add(id); state.apps.push(id); cell.classList.add('sel');
+    }
+    save(); renderList();
+  });
+  document.getElementById('fok').onclick = () => {
+    const v = document.getElementById('fname').value.trim();
+    state.folderName = v || '户外工具'; save(); render();
+    toast('文件夹已更新'); closeSheet(); dFolder();
+  };
+  const inp = document.getElementById('fname');
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('fok').click(); });
+}
+
+function openModal() { mask.classList.add('on'); }
+function closeModal() { mask.classList.remove('on'); }
+mask.addEventListener('click', e => { if (e.target === mask || e.target.hasAttribute('data-close')) closeModal(); });
+
+document.getElementById('btnAdd').addEventListener('click', () => openPicker(null));
+document.getElementById('btnFolder').addEventListener('click', openFolder);
+document.getElementById('btnReset').addEventListener('click', () => {
+  state = JSON.parse(JSON.stringify(DEFAULT)); render();
+});
+
+const CITIES = [['北京','18:21','UTC+8'],['东京','19:21','UTC+9'],['伦敦','11:21','UTC+1'],['纽约','06:21','UTC-4']];
+const HOURS = [['现在',32],['19时',30],['20时',28],['21时',27],['22时',26],['23时',25]];
+const WEEK = [['一',5200],['二',7400],['三',6100],['四',9100],['五',8432],['六',11200],['日',6800]];
+let sTimer = null;
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._tm); t._tm = setTimeout(() => t.classList.remove('on'), 1700);
+}
+function openSheet(title, body, cls) {
+  const el = document.getElementById('sheet');
+  el.className = 'sheet on' + (cls ? ' ' + cls : '');
+  el.innerHTML = '<div class="sheetbg"></div><div class="sheetpanel">' +
+    '<div class="sheethead"><h4>' + title + '</h4><button class="sclose">×</button></div>' +
+    '<div class="sheetbody">' + body + '</div></div>';
+  el.querySelector('.sheetbg').onclick = closeSheet;
+  el.querySelector('.sclose').onclick = closeSheet;
+}
+function closeSheet() {
+  if (sTimer) { clearInterval(sTimer); sTimer = null; }
+  const el = document.getElementById('sheet');
+  el.className = 'sheet'; el.innerHTML = '';
+}
+function dialHTML(size, angle) {
+  let ticks = '';
+  for (let a = 0; a < 360; a += 45) ticks += '<span class="tick" style="transform:translateX(-50%) rotate(' + a + 'deg);"></span>';
+  return '<div class="dial" style="width:' + size + 'px;height:' + size + 'px;"><span class="n">N</span>' + ticks +
+    '<div class="needle" style="transform:translate(-50%,-50%) rotate(' + angle + 'deg);"></div><div class="center"></div></div>';
+}
+
+function dWeather() {
+  const h = HOURS.map(x => '<div data-t="' + x[0] + '">' + x[0] + '<b>' + x[1] + '°</b></div>').join('');
+  const rows = [['体感温度','35°'],['紫外线','9 · 很强'],['湿度','45%'],['风','西南 2级'],['气压','1008 hPa'],['能见度','12 公里'],['日出','05:42'],['日落','19:08']]
+    .map(r => '<div class="r"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('');
+  openSheet('天气 · 深圳',
+    '<div class="sh-title">32° 晴</div><div class="sh-sub">体感 35° · 今日 26° / 34°</div>' +
+    '<div class="hourly">' + h + '</div><div class="dlist">' + rows + '</div>' +
+    '<button class="act ghost" id="wRefresh">刷新天气数据</button>');
+  document.querySelectorAll('.hourly div').forEach(el => el.onclick = () => toast(el.dataset.t + ' 气温 ' + el.querySelector('b').textContent));
+  document.getElementById('wRefresh').onclick = () => toast('天气数据已更新');
+}
+function dWalk() {
+  const max = Math.max.apply(null, WEEK.map(d => d[1]));
+  const bars = WEEK.map((d, i) => '<div data-d="' + d[0] + '" data-v="' + d[1] + '" class="' + (i === 4 ? 'sel' : '') + '" style="height:' + Math.round(d[1] / max * 100) + '%"><i>周' + d[0] + '</i></div>').join('');
+  openSheet('今日步行',
+    '<div class="sh-title">8,432 步</div><div class="sh-sub">目标 10,000 步 · 已完成 84%</div>' +
+    '<div class="bars">' + bars + '</div><div class="dlist">' +
+    '<div class="r"><span>距离</span><b>5.86 公里</b></div><div class="r"><span>消耗</span><b>326 千卡</b></div>' +
+    '<div class="r"><span>活跃时长</span><b>62 分钟</b></div><div class="r"><span>本周平均</span><b>7,762 步</b></div></div>' +
+    '<button class="act" id="wGoal">设置每日目标</button>');
+  document.querySelectorAll('.bars div').forEach(el => el.onclick = () => {
+    document.querySelectorAll('.bars div').forEach(x => x.classList.remove('sel'));
+    el.classList.add('sel'); toast('周' + el.dataset.d + ' · ' + el.dataset.v + ' 步');
+  });
+  document.getElementById('wGoal').onclick = () => toast('每日目标已设为 10,000 步');
+}
+function dMap() {
+  openSheet('Google 地图',
+    '<div class="sh-title">莲花山公园</div><div class="sh-sub">距您 3.2 公里 · 步行约 42 分钟</div>' +
+    '<div style="position:relative;height:170px;border-radius:18px;overflow:hidden;margin-top:14px;">' +
+    '<svg viewBox="0 0 200 170" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%;">' +
+    '<rect width="200" height="170" fill="#e8e6e1"/><path d="M0 30 L200 8 L200 22 L0 44 Z" fill="#f6c96b"/>' +
+    '<path d="M-10 92 L210 72 L210 84 L-10 104 Z" fill="#fff"/><path d="M130 -10 L120 170 L132 170 L142 -10 Z" fill="#f6c96b"/>' +
+    '<path d="M150 20 C180 34 190 56 185 78 C200 74 202 48 195 28 Z" fill="#b8dba4"/>' +
+    '<path d="M100 46 C90 46 84 54 84 62 C84 72 100 84 100 84 C100 84 116 72 116 62 C116 54 110 46 100 46 Z" fill="#ea4335"/>' +
+    '<circle cx="100" cy="61" r="4.5" fill="#fff"/></svg>' +
+    '<div class="locate"><i></i>GPS 已定位 · 误差 5m</div></div>' +
+    '<div class="chips"><span class="chip on" data-m="标准地图">标准地图</span><span class="chip" data-m="卫星图">卫星图</span><span class="chip" data-m="地形图">地形图</span></div>' +
+    '<button class="act" id="nav">开始导航</button>');
+  document.querySelectorAll('.chips .chip').forEach(el => el.onclick = () => {
+    document.querySelectorAll('.chips .chip').forEach(x => x.classList.remove('on'));
+    el.classList.add('on'); toast('已切换到' + el.dataset.m);
+  });
+  document.getElementById('nav').onclick = () => toast('正在规划到「莲花山公园」的步行路线…');
+}
+function dCompass() {
+  const locked = state.ui.compassLocked;
+  openSheet('指南针',
+    dialHTML(150, 45) +
+    '<div class="sh-center">东北 NE · 45°<br>海拔 1,280 米 · 867 hPa</div>' +
+    '<button class="act" id="cLock">' + (locked ? '解除锁定' : '重新锁定') + '</button>' +
+    '<button class="act ghost" id="cCal">校准指南针</button>');
+  document.getElementById('cLock').onclick = () => {
+    state.ui.compassLocked = !locked; save(); render();
+    toast(state.ui.compassLocked ? '方向已锁定' : '方向已解锁'); dCompass();
+  };
+  document.getElementById('cCal').onclick = () => toast('请按∞形晃动手机完成校准');
+}
+function dFolder() {
+  const per = 9;
+  // 把「添加」位当成序列里的最后一个格子，与应用一起按每页 9 个分页：
+  // 应用数正好是 9 的倍数时，「添加」自然落到新的一页 —— 第 1 页排满 9 个、不留空位。
+  const seq = state.apps.slice();
+  if (seq.length < MAX_APPS) seq.push('__add__');   // 已满 18 个则不再显示「添加」
+  const appPages = [];
+  for (let i = 0; i < seq.length; i += per) appPages.push(seq.slice(i, i + per));
+  if (!appPages.length) appPages.push([]);
+  const pages = appPages.length;
+  const page = Math.min(state.ui.folderPage || 0, pages - 1);
+  state.ui.folderPage = page;
+  const slice = appPages[page];
+  const EX = '<svg width="28" height="28" viewBox="0 0 28 28"><rect x="4" y="4" width="13" height="20" rx="2.5" fill="none" stroke="#ff7a1a" stroke-width="2.6"/><path d="M12 14 H24 M20 10 L24 14 L20 18" fill="none" stroke="#ff7a1a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const items = slice.map(id => id === '__add__'
+    ? '<div class="fitem addslot" id="addslot"><div class="ficon">+</div><span>添加</span></div>'
+    : '<div class="fitem" data-app="' + id + '"><div class="ficon">' + (id === 'exit' ? EX : (ICON[id] || '')) + '</div><span>' + (APPS[id] || id) + '</span></div>'
+  ).join('');
+  const dots = Array.from({ length: pages }, (_, i) => '<i data-p="' + i + '" class="' + (i === page ? 'on' : '') + '"></i>').join('');
+  openSheet((state.folderName || '户外工具') + ' · ' + state.apps.length,
+    '<div class="folder-title">' + (state.folderName || '户外工具') + '</div><div class="fgrid3">' + items + '</div>' +
+    '<div class="dots">' + dots + '</div>', 'folder');
+  document.querySelectorAll('.fgrid3 .fitem[data-app]').forEach(el => el.onclick = () => toast('打开 ' + APPS[el.dataset.app]));
+  const add = document.getElementById('addslot');
+  if (add) add.onclick = () => openFolder();
+  document.querySelectorAll('.dots i').forEach(el => el.onclick = () => { state.ui.folderPage = +el.dataset.p; save(); dFolder(); });
+}
+
+function dMusic() {
+  const u = state.ui;
+  openSheet('YT Music',
+    '<div style="display:flex;gap:16px;align-items:center;">' +
+    '<div class="cover" style="width:88px;height:88px;"><svg width="36" height="36" viewBox="0 0 24 24"><path d="M9 18.5 A2.5 2.5 0 1 1 6.5 16 A2.5 2.5 0 0 1 9 18.5 Z M20 16.5 A2.5 2.5 0 1 1 17.5 14 A2.5 2.5 0 0 1 20 16.5 Z M9 16 V5 L20 3 V14" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg></div>' +
+    '<div><div style="color:#fff;font-size:16px;font-weight:500;">Cornfield Chase</div><div style="color:#8f8f93;font-size:12.5px;margin-top:5px;">Hans Zimmer · 星际穿越</div></div></div>' +
+    '<div class="mbar" style="margin-top:18px;"><i id="mfill" style="width:' + (u.progress || 42) + '%;"></i></div>' +
+    '<div class="mtime"><span id="mcur">01:48</span><span>04:22</span></div>' +
+    '<button class="act" id="mPlay">' + (u.playing ? '暂停播放' : '继续播放') + '</button>' +
+    '<div class="chips"><span class="chip" data-a="收藏">收藏</span><span class="chip" data-a="单曲循环">单曲循环</span><span class="chip" data-a="下载到本地">下载</span></div>');
+  const tick = () => {
+    u.progress = Math.min(100, (u.progress || 42) + 0.8);
+    const el = document.getElementById('mfill');
+    if (el) el.style.width = u.progress + '%';
+    const c = document.getElementById('mcur');
+    if (c) { const sec = Math.round(262 * u.progress / 100); c.textContent = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
+  };
+  if (u.playing) sTimer = setInterval(tick, 700);
+  document.getElementById('mPlay').onclick = () => { u.playing = !u.playing; save(); toast(u.playing ? '继续播放' : '已暂停'); dMusic(); };
+  document.querySelectorAll('.chips .chip').forEach(el => el.onclick = () => toast('已' + el.dataset.a));
+}
+function dAlti() {
+  const v = state.ui.altiView;
+  openSheet('高度气压计',
+    '<div class="sh-title">' + (v === 'alt' ? '1,280 米' : '867 hPa') + '</div>' +
+    '<div class="sh-sub">' + (v === 'alt' ? '较 1 小时前 +32 米 · 今日最高 1,412 米' : '过去 6 小时持续下降') + '</div>' +
+    '<svg width="100%" height="120" viewBox="0 0 200 120" style="margin-top:18px;">' +
+    '<polyline points="0,100 28,92 56,84 84,88 112,66 140,52 168,40 200,24" fill="none" stroke="#ff7a1a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<circle cx="200" cy="24" r="4" fill="#ff7a1a"/></svg>' +
+    '<div class="chips"><span class="chip ' + (v === 'alt' ? 'on' : '') + '" data-v="alt">海拔</span><span class="chip ' + (v === 'pre' ? 'on' : '') + '" data-v="pre">气压</span></div>' +
+    '<div class="dlist"><div class="r"><span>当前海拔</span><b>1,280 米</b></div><div class="r"><span>气压</span><b>867 hPa</b></div><div class="r"><span>攀爬累计</span><b>+412 米</b></div></div>');
+  document.querySelectorAll('.chips .chip').forEach(el => el.onclick = () => { state.ui.altiView = el.dataset.v; save(); dAlti(); });
+}
+function dBattery() {
+  const u = state.ui;
+  openSheet('电量',
+    '<div class="batw" style="padding:10px 0;"><div class="ring" style="width:130px;height:130px;"><div style="width:104px;height:104px;"><b>79%</b><span>充电中</span></div></div>' +
+    '<div class="left">预计可用 14 小时 20 分</div></div>' +
+    '<div class="chips" style="justify-content:space-between;align-items:center;margin-top:20px;">' +
+    '<div><div style="color:#fff;font-size:13.5px;">省电模式</div><div style="color:#8f8f93;font-size:11.5px;margin-top:4px;">限制后台活动与亮度</div></div>' +
+    '<div class="switch ' + (u.powerSave ? 'on' : '') + '" id="psw"><i></i></div></div>' +
+    '<div class="dlist"><div class="r"><span>今日已用</span><b>62%</b></div><div class="r"><span>耗电最多</span><b>地图 24%</b></div><div class="r"><span>充电方式</span><b>快充 33W</b></div></div>');
+  document.getElementById('psw').onclick = () => { u.powerSave = !u.powerSave; save(); toast(u.powerSave ? '省电模式已开启' : '省电模式已关闭'); dBattery(); };
+}
+function dClock() {
+  const rows = CITIES.map((c, i) => '<div class="cityrow ' + (state.ui.city === i ? 'on' : '') + '" data-i="' + i + '"><div><div class="cn">' + c[0] + '</div><em>' + c[2] + '</em></div><div class="ct">' + c[1] + '</div></div>').join('');
+  openSheet('世界时钟', rows + '<button class="act ghost" id="cadd">添加城市</button>');
+  document.querySelectorAll('.cityrow').forEach(el => el.onclick = () => { state.ui.city = +el.dataset.i; save(); dClock(); toast('主时钟已设为 ' + CITIES[+el.dataset.i][0]); });
+  document.getElementById('cadd').onclick = () => toast('城市列表已打开');
+}
+function dSos() {
+  openSheet('SOS 求救',
+    '<div class="sh-center">长按下方按钮 3 秒发送求救</div>' +
+    '<button class="sosbig" id="sosbtn">SOS</button>' +
+    '<div class="sh-center" id="sostip">松开可取消</div>' +
+    '<div class="dlist"><div class="r"><span>紧急联系人</span><b>李明 · 138****6621</b></div><div class="r"><span>当前位置</span><b>深圳 福田区 · GPS 已定位</b></div><div class="r"><span>剩余电量</span><b>79%</b></div></div>');
+  const b = document.getElementById('sosbtn');
+  let hold = null, n = 3;
+  const start = e => { if (e) e.preventDefault(); n = 3; b.textContent = '3'; hold = setInterval(() => { n--; if (n > 0) b.textContent = n; else { clearInterval(hold); hold = null; b.textContent = '已发送'; toast('求救信息与位置已发送给紧急联系人'); } }, 1000); };
+  const end = () => { if (hold) { clearInterval(hold); hold = null; b.textContent = 'SOS'; toast('已取消发送'); } };
+  b.addEventListener('mousedown', start); b.addEventListener('mouseup', end); b.addEventListener('mouseleave', end);
+  b.addEventListener('touchstart', start); b.addEventListener('touchend', end);
+}
+const DETAIL = { weather:dWeather, walk:dWalk, map:dMap, compass:dCompass, folder:dFolder, music:dMusic, altimeter:dAlti, battery:dBattery, clock:dClock, sos:dSos, walkS:dWalk, sosS:dSos };
+
+function openDetail(i) {
+  const t = state.widgets[i];
+  if (DETAIL[t]) DETAIL[t](); else toast('打开 ' + DEFS[t].name);
+}
+
+const DOCK_NAMES = ['电话', 'Safari', '信息', '相机'];
+document.querySelectorAll('.dock .dapp').forEach((el, i) => el.addEventListener('click', () => toast('打开 ' + DOCK_NAMES[i])));
+
+render();
+</script>
+</body>
+</html>

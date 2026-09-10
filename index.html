@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>户外模式 · 可交互原型</title>
+<meta http-equiv="refresh" content="0;url=./outdoor-mode-interactive.html">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { height:100%; }
+  body {
+    background:#222225; color:#e4e4e7;
+    font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:22px; text-align:center; padding:40px;
+  }
+  .badge {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:6px 14px; border-radius:999px;
+    background:rgba(255,122,26,.12); border:1px solid rgba(255,122,26,.35);
+    color:#ff7a1a; font-size:13px; font-weight:600;
+  }
+  .dot { width:7px; height:7px; border-radius:50%; background:#ff7a1a; box-shadow:0 0 10px #ff7a1a; }
+  h1 { font-size:30px; font-weight:700; color:#fff; letter-spacing:.5px; }
+  p { color:#9a9aa2; font-size:14px; line-height:1.7; max-width:460px; }
+  a.btn {
+    margin-top:6px; display:inline-block; text-decoration:none;
+    padding:13px 30px; border-radius:16px; font-size:15px; font-weight:600; color:#fff;
+    background:linear-gradient(180deg,#ff8b36,#ff7a1a);
+    box-shadow:0 8px 24px rgba(255,122,26,.35), inset 0 1px 0 rgba(255,255,255,.35);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  a.btn:hover { transform:translateY(-1px); box-shadow:0 12px 30px rgba(255,122,26,.45), inset 0 1px 0 rgba(255,255,255,.4); }
+</style>
+</head>
+<body>
+  <span class="badge"><span class="dot"></span>正在进入原型</span>
+  <h1>户外模式 · 可交互原型</h1>
+  <p>三防机户外模式主屏小组件交互稿。若无自动跳转，请点击下方按钮。</p>
+  <a class="btn" href="./outdoor-mode-interactive.html">打开原型 →</a>
+  <script>location.replace('./outdoor-mode-interactive.html');</script>
+</body>
+</html>

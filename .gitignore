@@ -1,0 +1,9 @@
+# WorkBuddy 项目数据（记忆/配置）—— 不入库
+.workbuddy/
+
+# macOS
+.DS_Store
+
+# 临时文件
+*.log
+*.tmp
